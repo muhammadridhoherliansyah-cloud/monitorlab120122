@@ -2049,7 +2049,7 @@ function buildUserLabCheckboxes(selectedLabs){
   el.innerHTML=labsData.map(l=>{
     const checked=selectedLabs.includes(l.nama);
     const border=checked?'var(--blue)':'var(--border)';
-    return '<label style="display:flex;align-items:center;gap:6px;background:var(--bg-input);border:1.5px solid '+border+';border-radius:var(--r-sm);padding:7px 14px;cursor:pointer;font-size:12px;transition:.15s;" onclick="event.preventDefault();const cb=this.querySelector('input');cb.checked=!cb.checked;this.style.borderColor=cb.checked?'var(--blue)':'var(--border)'">'
+    return '<label style="display:flex;align-items:center;gap:6px;background:var(--bg-input);border:1.5px solid '+border+';border-radius:var(--r-sm);padding:7px 14px;cursor:pointer;font-size:12px;transition:.15s;" onclick="event.preventDefault();const cb=this.querySelector("input");cb.checked=!cb.checked;this.style.borderColor=cb.checked?"var(--blue)":"var(--border)"">'
       +'<input type="checkbox" '+(checked?'checked':'')+'style="accent-color:var(--blue);">'
       +'<span>'+l.nama+'</span><span style="color:var(--txt3);font-size:10px;margin-left:2px;">('+l.lantai+')</span>'
       +'</label>';
@@ -2200,8 +2200,8 @@ function refreshLabDropdowns(){
   const bar=document.getElementById('asetFilterBar');
   if(bar){
     const ac=getAsetCounts();
-    bar.innerHTML='<button class="filter-tab active" onclick="filterAset(this,'semua')">Semua <span class="count-pill">'+ac.total+'</span></button>'
-      +labsData.map(l=>'<button class="filter-tab" onclick="filterAset(this,''+l.id+'')">'+l.nama+' <span class="count-pill">'+asetData.filter(a=>a.lab===l.nama).length+'</span></button>').join('')
+    bar.innerHTML='<button class="filter-tab active" onclick="filterAset(this,\'semua\')">Semua <span class="count-pill">'+ac.total+'</span></button>'
+      +labsData.map(l=>'<button class="filter-tab" onclick="filterAset(this,\''+l.id+'\')">'+l.nama+' <span class="count-pill">'+asetData.filter(a=>a.lab===l.nama).length+'</span></button>').join('')
       +'<input class="search-input" id="asetSearch" type="text" placeholder="🔍 Cari nama aset..." oninput="renderAset(currentAsetFilter,this.value)">';
   }
 }
