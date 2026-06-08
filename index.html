@@ -390,13 +390,6 @@ body { background:var(--bg); }
         <div class="login-error" id="loginPwErr">Password salah. Silakan coba lagi.</div>
       </div>
       <button class="login-btn" onclick="doLogin()">Masuk →</button>
-      <hr class="login-divider">
-      
-        <div class="login-demo-card" onclick="fillLogin('ASST-001','asisten123')">
-          <div class="login-demo-role asisten">Asisten Lab</div>
-          <div class="login-demo-id">ASST-001</div>
-          <div class="login-demo-pw">Password: asisten123</div>
-        </div>
       </div>
     </div>
   </div>
@@ -923,11 +916,25 @@ function getLaporCounts(){
   const total = laporanData.length;
   return {baru,diproses,selesai,total};
 }
+// Helper: ambil pcData yang hanya dari lab yang ditugaskan ke user (asisten)
+// Admin selalu dapat semua data
+function getUserPcData(){
+  if(!currentUser || currentUser.role==='admin') return pcData;
+  const userLabs = currentUser.labs||[];
+  if(userLabs.length===0) return pcData; // belum ditugaskan = lihat semua (fallback)
+  return pcData.filter(p=>{
+    // cari aset yang sesuai nama pc, ambil lab-nya
+    const aset = asetData.find(a=>a.name===p.name);
+    return aset && userLabs.includes(aset.lab);
+  });
+}
+
 function getPcCounts(){
-  const normal = pcData.filter(p=>p.status==='normal').length;
-  const perlu = pcData.filter(p=>p.status==='perlu').length;
-  const rusak = pcData.filter(p=>p.status==='rusak').length;
-  const total = pcData.length;
+  const myPc = getUserPcData();
+  const normal = myPc.filter(p=>p.status==='normal').length;
+  const perlu = myPc.filter(p=>p.status==='perlu').length;
+  const rusak = myPc.filter(p=>p.status==='rusak').length;
+  const total = myPc.length;
   return {normal,perlu,rusak,total};
 }
 // Laporan milik asisten (pelapor = Meuthia A.)
@@ -1590,6 +1597,7 @@ function initAsisten(){
     <span class="topbar-title" id="topbarTitle">Dashboard</span>
     <button class="btn btn-primary btn-sm" style="margin-left:auto;" onclick="openLapor()">+ Lapor Kerusakan</button>`;
   document.getElementById('contentEl').innerHTML=asistenPagesHTML();
+  refreshLabDropdowns(); // filter dropdown lap sesuai lab yang ditugaskan
   renderPCGrid();
   renderPCTable();
   renderAsLaporan();
@@ -1630,8 +1638,9 @@ function updateAsDashboard(){
 function renderAsDashboardStatus(){
   const tb=document.getElementById('as-dash-status-tbody');
   if(!tb) return;
-  const highlight=pcData.filter(p=>p.status!=='normal').slice(0,5);
-  const all=highlight.length>0?highlight:pcData.slice(0,5);
+  const myPc=getUserPcData();
+  const highlight=myPc.filter(p=>p.status!=='normal').slice(0,5);
+  const all=highlight.length>0?highlight:myPc.slice(0,5);
   tb.innerHTML=all.map(p=>`
     <tr onclick="openPCDetail('${p.name}','${p.status}')">
       <td><div class="tbl-name">${p.name}</div><div class="tbl-sub">${p.row}</div></td>
@@ -1735,7 +1744,8 @@ function renderPCGrid(filter,search){
   if(!grid) return;
   filter=filter||currentPcFilter;
   search=(search||'').toLowerCase();
-  let data=filter==='all'?pcData:pcData.filter(p=>p.status===filter);
+  const myPc=getUserPcData();
+  let data=filter==='all'?myPc:myPc.filter(p=>p.status===filter);
   if(search) data=data.filter(p=>p.name.toLowerCase().includes(search));
   if(data.length===0){ grid.innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--txt3);">Tidak ada perangkat ditemukan.</div>`; return; }
   grid.innerHTML=data.map(p=>`
@@ -1752,7 +1762,8 @@ function renderPCTable(filter,search){
   if(!tb) return;
   filter=filter||currentPcFilter;
   search=(search||'').toLowerCase();
-  let data=filter==='all'?pcData:pcData.filter(p=>p.status===filter);
+  const myPc=getUserPcData();
+  let data=filter==='all'?myPc:myPc.filter(p=>p.status===filter);
   if(search) data=data.filter(p=>p.name.toLowerCase().includes(search));
   tb.innerHTML=data.map(p=>`
     <tr onclick="openPCDetail('${p.name}','${p.status}')">
@@ -1766,13 +1777,14 @@ function renderPCTable(filter,search){
 }
 
 function updatePCFilterCounts(){
+  const myPc=getUserPcData();
   const pills=document.querySelectorAll('#as-page-status-pc .filter-tab .count-pill');
-  if(pills[0]) pills[0].textContent=pcData.length;
-  if(pills[1]) pills[1].textContent=pcData.filter(p=>p.status==='normal').length;
-  if(pills[2]) pills[2].textContent=pcData.filter(p=>p.status==='perlu').length;
-  if(pills[3]) pills[3].textContent=pcData.filter(p=>p.status==='rusak').length;
+  if(pills[0]) pills[0].textContent=myPc.length;
+  if(pills[1]) pills[1].textContent=myPc.filter(p=>p.status==='normal').length;
+  if(pills[2]) pills[2].textContent=myPc.filter(p=>p.status==='perlu').length;
+  if(pills[3]) pills[3].textContent=myPc.filter(p=>p.status==='rusak').length;
   const sub=document.getElementById('pcPageSub');
-  if(sub) sub.textContent=`${pcData.length} perangkat terdaftar`;
+  if(sub) sub.textContent=`${myPc.length} perangkat terdaftar`;
 }
 
 function filterPC(btn,filter){
@@ -1807,6 +1819,7 @@ function openPCDetail(name,status){
 function openLapor(){
   const modal=document.getElementById('laporModal');
   modal.classList.add('open');
+  refreshLabDropdowns(); // pastikan dropdown lab sudah sesuai lab yang ditugaskan
   // fill from draft if exists
   if(draftData){
     const d=draftData;
@@ -1820,6 +1833,14 @@ function openLapor(){
     document.getElementById('laporDesc').value='';
     document.getElementById('laporErr').style.display='none';
     clearFotoInternal();
+    // Set default lab ke lab pertama yang ditugaskan ke asisten
+    if(currentUser&&currentUser.role==='asisten'){
+      const userLabs=currentUser.labs||[];
+      if(userLabs.length>0){
+        const sel=document.getElementById('laporLab');
+        if(sel) sel.value=userLabs[0];
+      }
+    }
   }
 }
 function closeLapor(){ document.getElementById('laporModal').classList.remove('open'); }
@@ -2195,7 +2216,16 @@ function refreshLabDropdowns(){
   const editSel=document.getElementById('editPcLab');
   if(editSel){ const prev=editSel.value; editSel.innerHTML=labOpts; if(labsData.find(l=>l.nama===prev)) editSel.value=prev; }
   const laporSel=document.getElementById('laporLab');
-  if(laporSel){ const prev=laporSel.value; laporSel.innerHTML=labOpts; if(labsData.find(l=>l.nama===prev)) laporSel.value=prev; }
+  if(laporSel){
+    const prev=laporSel.value;
+    // Asisten hanya bisa lapor ke lab yang ditugaskan
+    const allowedLabs=(currentUser&&currentUser.role==='asisten'&&(currentUser.labs||[]).length>0)
+      ? labsData.filter(l=>(currentUser.labs||[]).includes(l.nama))
+      : labsData;
+    laporSel.innerHTML=allowedLabs.map(l=>'<option value="'+l.nama+'">'+l.nama+' — '+l.lantai+'</option>').join('');
+    if(allowedLabs.find(l=>l.nama===prev)) laporSel.value=prev;
+    else if(allowedLabs.length>0) laporSel.value=allowedLabs[0].nama;
+  }
   // Rebuild filter tabs
   const bar=document.getElementById('asetFilterBar');
   if(bar){
