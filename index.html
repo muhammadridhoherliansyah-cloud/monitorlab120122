@@ -909,6 +909,31 @@ function syncAsetToPcData(){
     });
   });
 }
+// Update status aset/pcData berdasarkan status laporan
+// Cek semua laporan aktif untuk PC ini, ambil yang paling prioritas:
+//   baru (rusak) > diproses (perlu) > selesai/tolak semua (normal)
+function updatePcStatusFromLaporan(pcName, lapStatus){
+  // Ambil semua laporan untuk PC ini (setelah update terbaru sudah masuk laporanData)
+  const allReports = laporanData.filter(l=>l.pc===pcName);
+  
+  let newPcStatus = 'normal'; // default jika tidak ada laporan aktif
+  if(allReports.some(l=>l.status==='baru'))           newPcStatus='rusak';
+  else if(allReports.some(l=>l.status==='diproses'))  newPcStatus='perlu';
+  else                                                 newPcStatus='normal';
+
+  // Update di asetData
+  const aset = asetData.find(a=>a.name===pcName);
+  if(aset) aset.status=newPcStatus;
+
+  // Update di pcData
+  const pc = pcData.find(p=>p.name===pcName);
+  if(pc) pc.status=newPcStatus;
+
+  // Simpan ke Firebase
+  fbSaveAset();
+  fbSavePcData();
+}
+
 function getLaporCounts(){
   const baru = laporanData.filter(l=>l.status==='baru').length;
   const diproses = laporanData.filter(l=>l.status==='diproses').length;
@@ -1351,10 +1376,13 @@ function updateStatus(newStatus){
     showConfirm('Tolak laporan ini?','Laporan akan ditandai sebagai ditolak.','Ya, Tolak','btn-danger',()=>{
       l.status='tolak';
       fbSaveLaporan();
+      // Tolak -> PC kembali normal (tidak ada masalah)
+      updatePcStatusFromLaporan(l.pc, 'tolak');
+      syncAsetToPcData();
       closePanels();
       renderInbox(currentInboxFilter);
       updateAdminOverview();
-      showToast('error','✕',`Laporan ${l.id} ditolak.`);
+      showToast('error','✕',`Laporan ${l.id} ditolak. Status PC ${l.pc} dikembalikan ke Normal.`);
       currentLapIdx=null;
     });
     return;
@@ -1362,6 +1390,9 @@ function updateStatus(newStatus){
   if(newStatus===oldStatus){ showToast('warning','ℹ️','Status sudah sama.'); return; }
   l.status=newStatus;
   fbSaveLaporan();
+  // Sinkronisasi status PC sesuai status laporan terbaru
+  updatePcStatusFromLaporan(l.pc, newStatus);
+  syncAsetToPcData();
   document.getElementById('lapDetailPanel').classList.remove('open');
   document.getElementById('overlay').classList.remove('open');
   setTimeout(()=>{ openLapDetail(l.id); },100);
@@ -1369,7 +1400,8 @@ function updateStatus(newStatus){
   updateAdminOverview();
   // update sidebar badge
   updateInboxCounts();
-  showToast('success','✅',`Status laporan diperbarui menjadi "${statusLabel[newStatus]}"`);
+  const pcStatusMsg = newStatus==='diproses'?` — Status PC ${l.pc} → Sedang Perbaikan`:newStatus==='selesai'?` — Status PC ${l.pc} → Normal`:'';
+  showToast('success','✅',`Status laporan diperbarui menjadi "${statusLabel[newStatus]}"${pcStatusMsg}`);
 }
 
 function openModal(){ 
@@ -1900,10 +1932,13 @@ function submitLapor(){
   const entry={ id:newId, pc, pelapor:currentUser.nama, kategori:kat, kat_badge:katBadge, deskripsi:desc, status:'baru', waktu:tgl, foto:laporFotoDataURL||null };
   laporanData.unshift(entry);
   fbSaveLaporan();
+  // Update status PC menjadi Rusak secara otomatis saat laporan dibuat
+  updatePcStatusFromLaporan(pc, 'baru');
+  syncAsetToPcData();
   draftData=null;
   closeLapor();
   clearFotoInternal();
-  showToast('success','✅','Laporan berhasil dikirim! Admin akan segera meninjau.');
+  showToast('success','✅','Laporan berhasil dikirim! Status PC diperbarui menjadi Rusak.');
   // navigate to laporan page
   const laporBtn=document.querySelectorAll('#sidebarEl .sb-item')[2];
   asNav('laporan', laporBtn);
