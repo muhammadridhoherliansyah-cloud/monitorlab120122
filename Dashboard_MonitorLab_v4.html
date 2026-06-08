@@ -1,0 +1,2254 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MonitorLab</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;1,9..40,400&display=swap');
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0;}
+:root {
+  --bg:#f0f2f7; --bg-card:#ffffff; --bg-card2:#f7f9fc; --bg-input:#f0f2f7;
+  --bg-hover:#eef0f8; --border:#dde1ec; --border2:#c8cede;
+  --txt:#1a1d2e; --txt2:#5a6380; --txt3:#9099b8;
+  --blue:#3d5af1; --blue-dim:#e0e6ff;
+  --green:#16a85e; --green-dim:#d4f5e5;
+  --yellow:#d48a0c; --yellow-dim:#fff3d0;
+  --red:#d63030; --red-dim:#fde8e8;
+  --purple:#7c3aed; --purple-dim:#ede9fe;
+  --font:'DM Sans',sans-serif; --r:7px; --r-sm:5px;
+  --sh:0 2px 12px rgba(0,0,0,.08);
+  --touch-min:44px;
+}
+@keyframes fadeIn { from{opacity:0;transform:translateY(6px)} to{opacity:1;transform:translateY(0)} }
+@keyframes slideInRight { from{opacity:0;transform:translateX(24px)} to{opacity:1;transform:translateX(0)} }
+@keyframes pop { 0%{transform:scale(.95)} 60%{transform:scale(1.03)} 100%{transform:scale(1)} }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.5} }
+@keyframes countUp { from{opacity:0;transform:translateY(8px)} to{opacity:1;transform:translateY(0)} }
+
+.page.active { animation: fadeIn .2s ease; }
+.detail-panel.open { animation: slideInRight .22s cubic-bezier(.22,1,.36,1); }
+.modal.open .modal-box, .form-modal.open .form-box { animation: pop .2s ease; }
+.toast.show { animation: fadeIn .2s ease; }
+.stat-card { transition: transform .15s, box-shadow .15s; }
+.stat-card:hover { transform:translateY(-2px); box-shadow:0 6px 20px rgba(0,0,0,.1); }
+.stat-num { animation: countUp .3s ease; }
+.btn { transition: all .15s; }
+.btn:active { transform: scale(.97); }
+.filter-tab { transition: all .15s; }
+.sb-item { transition: all .15s; }
+.tbl tbody tr { transition: background .1s; }
+.tbl tbody tr:hover { background: var(--bg-hover); }
+
+/* LOGIN */
+#loginPage {
+  min-height:100vh; background:linear-gradient(135deg,#e8ecf8 0%,#f4f6fc 60%,#edf1ff 100%);
+  display:flex; align-items:center; justify-content:center; font-family:var(--font);
+}
+.login-wrap { width:100%; max-width:400px; padding:0 16px; }
+.login-logo { text-align:center; margin-bottom:32px; animation: fadeIn .4s ease; }
+.login-logo-icon { font-size:36px; }
+.login-logo-title { font-size:22px; font-weight:700; letter-spacing:-.5px; margin-top:8px; color:var(--txt); }
+.login-logo-sub { font-size:12px; color:var(--txt2); margin-top:4px; }
+.login-card { background:var(--bg-card); border:1px solid var(--border); border-radius:12px; padding:28px; box-shadow:var(--sh); animation: fadeIn .4s ease .1s both; }
+.login-title { font-size:15px; font-weight:700; color:var(--txt); margin-bottom:4px; }
+.login-desc { font-size:12px; color:var(--txt2); margin-bottom:22px; }
+.login-group { margin-bottom:14px; }
+.login-label { display:block; font-size:11px; font-weight:600; color:var(--txt2); margin-bottom:5px; }
+.login-input { width:100%; background:var(--bg-input); border:1px solid var(--border); border-radius:var(--r-sm); color:var(--txt); font-family:var(--font); font-size:13px; padding:10px 12px; outline:none; transition:.15s; height:var(--touch-min); }
+.login-input:focus { border-color:var(--blue); background:#fff; }
+.login-input.error { border-color:var(--red); }
+.login-error { font-size:11px; color:var(--red); margin-top:5px; display:none; }
+.login-error.show { display:block; }
+.login-btn { width:100%; height:var(--touch-min); background:var(--blue); color:#fff; border:none; border-radius:var(--r-sm); font-family:var(--font); font-size:14px; font-weight:700; cursor:pointer; transition:.15s; margin-top:6px; }
+.login-btn:hover { background:#2e48d8; }
+.login-btn:active { transform:scale(.98); }
+.login-divider { border:none; border-top:1px solid var(--border); margin:20px 0; }
+.login-accounts { font-size:11px; color:var(--txt3); margin-bottom:10px; font-weight:600; text-transform:uppercase; letter-spacing:.05em; }
+.login-demo-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.login-demo-card { background:var(--bg-input); border:1px solid var(--border); border-radius:var(--r-sm); padding:10px 12px; cursor:pointer; transition:.15s; }
+.login-demo-card:hover { border-color:var(--blue); background:var(--blue-dim); }
+.login-demo-role { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:.05em; margin-bottom:3px; }
+.login-demo-role.admin { color:var(--red); }
+.login-demo-role.asisten { color:var(--blue); }
+.login-demo-id { font-size:12px; color:var(--txt); font-weight:600; }
+.login-demo-pw { font-size:10px; color:var(--txt3); margin-top:1px; }
+
+/* APP SHELL */
+#appShell { display:none; font-family:var(--font); background:var(--bg); color:var(--txt); min-height:100vh; }
+body { background:var(--bg); }
+
+/* SIDEBAR */
+.sidebar { width:220px; min-height:100vh; background:var(--bg-card); border-right:1px solid var(--border); display:flex; flex-direction:column; flex-shrink:0; position:sticky; top:0; height:100vh; overflow-y:auto; }
+.sb-logo { padding:20px 18px 16px; border-bottom:1px solid var(--border); display:flex; align-items:center; gap:9px; }
+.sb-logo-text { font-size:15px; font-weight:700; letter-spacing:-.3px; flex:1; }
+.sb-badge-admin { font-size:10px; background:var(--red-dim); color:#c53030; padding:2px 7px; border-radius:20px; font-weight:700; }
+.sb-badge-asisten { font-size:10px; background:var(--blue-dim); color:#2c40c4; padding:2px 7px; border-radius:20px; font-weight:600; }
+.sb-section { padding:10px 0 4px; }
+.sb-section-label { font-size:10px; font-weight:600; letter-spacing:.08em; color:var(--txt3); text-transform:uppercase; padding:0 18px 6px; }
+.sb-item { display:flex; align-items:center; gap:10px; height:var(--touch-min); padding:0 18px; font-size:13px; color:var(--txt2); cursor:pointer; border-left:2px solid transparent; user-select:none; }
+.sb-item:hover { background:var(--bg-hover); color:var(--txt); }
+.sb-item.active { background:var(--blue-dim); color:var(--blue); border-left-color:var(--blue); font-weight:600; }
+.sb-item-icon { font-size:14px; width:18px; text-align:center; }
+.sb-item-badge { margin-left:auto; background:var(--red); color:#fff; font-size:10px; font-weight:700; padding:1px 6px; border-radius:10px; }
+.sb-bottom { margin-top:auto; border-top:1px solid var(--border); padding:14px 18px; }
+.sb-logout { width:100%; background:transparent; border:1px solid var(--border2); border-radius:var(--r-sm); color:var(--txt2); font-family:var(--font); font-size:12px; padding:7px; cursor:pointer; margin-top:10px; transition:.15s; }
+.sb-logout:hover { border-color:var(--red); color:var(--red); }
+.user-row { display:flex; align-items:center; gap:10px; }
+.user-avatar { width:32px; height:32px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700; color:#fff; flex-shrink:0; }
+.user-avatar.admin { background:linear-gradient(135deg,#e8453c,#f5a623); }
+.user-avatar.asisten { background:linear-gradient(135deg,#3d5af1,#8b5cf6); }
+.user-name { font-size:12px; font-weight:600; }
+.user-role { font-size:10px; color:var(--txt2); }
+
+/* MAIN */
+.main { flex:1; display:flex; flex-direction:column; min-width:0; }
+.topbar { height:52px; background:var(--bg-card); border-bottom:1px solid var(--border); display:flex; align-items:center; padding:0 24px; gap:12px; flex-shrink:0; position:sticky; top:0; z-index:10; box-shadow:0 1px 0 var(--border); }
+.topbar-title { font-size:14px; font-weight:600; flex:1; }
+.notif-pill { background:var(--red); color:#fff; font-size:11px; font-weight:700; padding:4px 11px; border-radius:20px; }
+.admin-av { width:30px; height:30px; border-radius:50%; background:linear-gradient(135deg,#e8453c,#f5a623); display:flex; align-items:center; justify-content:center; font-size:10px; font-weight:700; color:#fff; }
+.content { flex:1; padding:24px; overflow-y:auto; }
+.page { display:none; }
+.page.active { display:block; }
+
+/* BREADCRUMB */
+.breadcrumb { display:flex; align-items:center; gap:4px; font-size:11px; color:var(--txt3); margin-bottom:12px; }
+.breadcrumb a { color:var(--blue); text-decoration:none; cursor:pointer; }
+.breadcrumb a:hover { text-decoration:underline; }
+.breadcrumb-sep { color:var(--txt3); }
+
+/* BUTTONS */
+.btn { display:inline-flex; align-items:center; gap:6px; font-family:var(--font); font-size:12px; font-weight:600; padding:0 14px; height:var(--touch-min); min-width:var(--touch-min); border-radius:var(--r-sm); cursor:pointer; border:none; }
+.btn-primary { background:var(--blue); color:#fff; }
+.btn-primary:hover { background:#2e48d8; }
+.btn-ghost { background:var(--bg-input); border:1px solid var(--border2); color:var(--txt); }
+.btn-ghost:hover { border-color:var(--blue); color:var(--blue); }
+.btn-danger { background:var(--red-dim); border:1px solid #f5b5b5; color:var(--red); }
+.btn-success { background:var(--green-dim); border:1px solid #a7efd0; color:var(--green); }
+.btn-warn { background:var(--yellow-dim); border:1px solid #f9d98c; color:var(--yellow); }
+.btn-sm { height:36px; padding:0 12px; font-size:11px; min-width:0; }
+.btn-full { width:100%; justify-content:center; }
+
+/* STATS */
+.stat-row { display:grid; gap:12px; margin-bottom:22px; }
+.stat-row-4 { grid-template-columns:repeat(4,1fr); }
+.stat-row-3 { grid-template-columns:repeat(3,1fr); }
+.stat-card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--r); padding:16px; position:relative; overflow:hidden; box-shadow:var(--sh); }
+.stat-card::before { content:''; position:absolute; top:0;left:0;right:0; height:3px; }
+.stat-card.green::before { background:var(--green); }
+.stat-card.yellow::before { background:var(--yellow); }
+.stat-card.red::before { background:var(--red); }
+.stat-card.blue::before { background:var(--blue); }
+.stat-card.purple::before { background:var(--purple); }
+.stat-num { font-size:28px; font-weight:700; line-height:1; margin-bottom:5px; }
+.stat-num.green { color:var(--green); }
+.stat-num.yellow { color:var(--yellow); }
+.stat-num.red { color:var(--red); }
+.stat-num.blue { color:var(--blue); }
+.stat-num.purple { color:var(--purple); }
+.stat-num.white { color:var(--txt); }
+.stat-lbl { font-size:12px; color:var(--txt2); }
+.stat-icon { position:absolute; top:14px; right:14px; font-size:20px; opacity:.2; }
+
+/* BADGE */
+.badge { display:inline-flex; align-items:center; padding:2px 9px; border-radius:20px; font-size:10px; font-weight:700; }
+.b-normal  { background:var(--green-dim); color:#148c50; }
+.b-rusak   { background:var(--red-dim);   color:var(--red); }
+.b-perlu   { background:var(--yellow-dim);color:#b87800; }
+.b-offline { background:#f0f0f5; color:var(--txt3); border:1px solid var(--border2); }
+.b-baru    { background:var(--red-dim);   color:var(--red); }
+.b-diproses{ background:var(--yellow-dim);color:#b87800; }
+.b-selesai { background:var(--green-dim); color:#148c50; }
+.b-hw      { background:#e8eeff; color:#2c40c4; border:1px solid #c5d0ff; }
+.b-sw      { background:var(--purple-dim);color:var(--purple); }
+.b-net     { background:#d4f5f0; color:#0d7a6a; }
+.b-draft   { background:#f4f4f8; color:#9099b8; border:1px solid var(--border2); }
+.b-tolak   { background:var(--red-dim); color:var(--red); }
+
+/* CARD */
+.card { background:var(--bg-card); border:1px solid var(--border); border-radius:var(--r); overflow:hidden; margin-bottom:16px; box-shadow:var(--sh); }
+.card-header { display:flex; align-items:center; justify-content:space-between; padding:14px 16px; border-bottom:1px solid var(--border); background:var(--bg-card); }
+.card-title { font-size:13px; font-weight:600; }
+.card-body { padding:0; }
+.card-body-pad { padding:16px; }
+
+/* TABLE */
+.tbl { width:100%; border-collapse:collapse; font-size:12px; }
+.tbl th { text-align:left; color:var(--txt3); font-weight:600; font-size:11px; padding:10px 14px; border-bottom:1px solid var(--border); background:var(--bg-card2); }
+.tbl td { padding:11px 14px; border-bottom:1px solid var(--border); vertical-align:middle; }
+.tbl tbody tr:last-child td { border-bottom:none; }
+.tbl tbody tr { cursor:pointer; }
+.tbl-name { font-weight:600; font-size:12px; }
+.tbl-sub { font-size:10px; color:var(--txt3); margin-top:1px; }
+.link-act { color:var(--blue); font-weight:600; font-size:11px; cursor:pointer; }
+.link-update { color:var(--yellow); font-weight:600; font-size:11px; cursor:pointer; }
+.link-view { color:var(--green); font-weight:600; font-size:11px; cursor:pointer; }
+
+/* PAGE LAYOUT */
+.page-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:20px; }
+.page-title { font-size:20px; font-weight:700; letter-spacing:-.4px; }
+.page-sub { font-size:12px; color:var(--txt2); margin-top:3px; }
+
+/* FILTER */
+.filter-bar { display:flex; align-items:center; gap:8px; margin-bottom:16px; flex-wrap:wrap; }
+.filter-tab { background:var(--bg-card); border:1px solid var(--border); border-radius:20px; font-family:var(--font); font-size:12px; font-weight:500; color:var(--txt2); padding:6px 14px; cursor:pointer; display:inline-flex; align-items:center; gap:5px; height:32px; }
+.filter-tab:hover { border-color:var(--blue); color:var(--blue); }
+.filter-tab.active { background:var(--blue); border-color:var(--blue); color:#fff; font-weight:600; }
+.count-pill { background:rgba(255,255,255,.25); border-radius:10px; font-size:10px; padding:0 5px; }
+.filter-tab:not(.active) .count-pill { background:var(--bg-input); color:var(--txt3); }
+.search-input { background:var(--bg-card); border:1px solid var(--border); border-radius:20px; font-family:var(--font); font-size:12px; color:var(--txt); padding:6px 14px; outline:none; height:32px; width:180px; transition:.15s; margin-left:auto; }
+.search-input:focus { border-color:var(--blue); }
+
+/* GRID */
+.grid-3-1 { display:grid; grid-template-columns:2fr 1fr; gap:20px; }
+.app-layout { display:flex; min-height:100vh; }
+
+/* PROGRESS BAR */
+.prog-bar { height:6px; background:var(--border); border-radius:4px; overflow:hidden; }
+.prog-fill { height:100%; border-radius:4px; transition: width .4s ease; }
+
+/* ACTIVITY */
+.activity-list { padding:4px 0; }
+.act-item { display:flex; align-items:flex-start; gap:10px; padding:10px 16px; border-bottom:1px solid var(--border); }
+.act-item:last-child { border-bottom:none; }
+.act-dot { width:8px; height:8px; border-radius:50%; flex-shrink:0; margin-top:4px; }
+.act-dot.red { background:var(--red); }
+.act-dot.green { background:var(--green); }
+.act-dot.yellow { background:var(--yellow); }
+.act-dot.blue { background:var(--blue); }
+.act-body { flex:1; }
+.act-title { font-size:12px; font-weight:600; }
+.act-meta { font-size:11px; color:var(--txt2); margin-top:1px; }
+.act-time { font-size:10px; color:var(--txt3); flex-shrink:0; }
+
+/* DETAIL PANEL */
+.detail-panel { position:fixed; top:0; right:-380px; width:360px; height:100vh; background:var(--bg-card); border-left:1px solid var(--border); z-index:150; display:flex; flex-direction:column; transition: right .25s cubic-bezier(.22,1,.36,1); overflow-y:auto; box-shadow:-4px 0 20px rgba(0,0,0,.12); }
+.detail-panel.open { right:0; }
+.dp-header { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid var(--border); background:var(--bg-card2); flex-shrink:0; }
+.dp-title { font-size:14px; font-weight:700; }
+.dp-close { background:none; border:none; font-size:16px; cursor:pointer; color:var(--txt3); padding:4px; border-radius:4px; transition:.15s; }
+.dp-close:hover { color:var(--txt); background:var(--bg-hover); }
+.dp-body { padding:18px 20px; flex:1; }
+.dp-section { margin-bottom:18px; }
+.dp-section-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:.06em; color:var(--txt3); margin-bottom:10px; }
+.dp-row { display:flex; justify-content:space-between; align-items:center; padding:7px 0; border-bottom:1px solid var(--border); font-size:12px; }
+.dp-row:last-child { border-bottom:none; }
+.dp-key { color:var(--txt2); }
+.dp-val { font-weight:600; text-align:right; }
+.desc-box { background:var(--bg-input); border-radius:var(--r-sm); padding:12px; font-size:12px; color:var(--txt2); line-height:1.6; }
+
+/* TIMELINE */
+.timeline { display:flex; flex-direction:column; gap:0; }
+.tl-item { display:flex; align-items:flex-start; gap:10px; padding:8px 0; position:relative; }
+.tl-dot { width:12px; height:12px; border-radius:50%; flex-shrink:0; margin-top:2px; }
+.tl-dot.fill { background:var(--blue); box-shadow:0 0 0 3px var(--blue-dim); }
+.tl-dot.empty { background:var(--border2); border:2px solid var(--border2); }
+.tl-dot.green { background:var(--green); box-shadow:0 0 0 3px var(--green-dim); }
+.tl-title { font-size:12px; font-weight:600; }
+.tl-sub { font-size:11px; color:var(--txt3); margin-top:2px; }
+
+/* SPEC GRID */
+.spec-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; }
+.spec-item { background:var(--bg-input); border-radius:var(--r-sm); padding:10px; }
+.spec-label { font-size:10px; color:var(--txt3); margin-bottom:3px; }
+.spec-val { font-size:12px; font-weight:600; }
+
+/* ACTION GRID */
+.action-grid { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-bottom:8px; }
+
+/* PC GRID */
+.pc-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(90px,1fr)); gap:8px; padding:14px; }
+.pc-tile { background:var(--bg-card2); border:1px solid var(--border); border-radius:var(--r); padding:12px 10px; text-align:center; cursor:pointer; transition:all .15s; position:relative; }
+.pc-tile:hover { border-color:var(--blue); transform:translateY(-2px); box-shadow:0 4px 12px rgba(61,90,241,.15); }
+.pc-tile.normal { border-top:2px solid var(--green); }
+.pc-tile.rusak  { border-top:2px solid var(--red); }
+.pc-tile.perlu  { border-top:2px solid var(--yellow); }
+.pc-tile-name { font-size:13px; font-weight:700; margin-bottom:6px; }
+.pc-tile-cek { font-size:10px; color:var(--txt3); margin-top:4px; }
+
+/* MODAL */
+.modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:200; align-items:center; justify-content:center; }
+.modal.open { display:flex; }
+.modal-box { background:var(--bg-card); border:1px solid var(--border); border-radius:10px; width:480px; max-width:95vw; max-height:90vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,.2); }
+.modal-header { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid var(--border); background:var(--bg-card2); }
+.modal-title { font-size:14px; font-weight:700; }
+.modal-body { padding:20px; display:flex; flex-direction:column; gap:13px; }
+.mrow { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.mgroup { display:flex; flex-direction:column; gap:5px; }
+.mlabel { font-size:11px; color:var(--txt2); font-weight:600; }
+.mlabel span { color:var(--red); }
+.minput,.mselect,.mtextarea { background:var(--bg-input); border:1px solid var(--border); border-radius:var(--r-sm); color:var(--txt); font-family:var(--font); font-size:12px; padding:8px 11px; outline:none; width:100%; transition:.15s; }
+.minput:focus,.mselect:focus,.mtextarea:focus { border-color:var(--blue); background:#fff; box-shadow:0 0 0 3px rgba(61,90,241,.1); }
+.mselect { appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%235a6380' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 10px center; }
+.mtextarea { resize:vertical; min-height:64px; line-height:1.5; }
+.modal-footer { display:grid; grid-template-columns:1fr 1.4fr; gap:10px; padding:14px 20px; border-top:1px solid var(--border); }
+
+/* FORM LAPORAN MODAL - SINGLE STEP */
+.form-modal { display:none; position:fixed; inset:0; background:rgba(0,0,0,.35); z-index:200; align-items:center; justify-content:center; }
+.form-modal.open { display:flex; }
+.form-box { background:var(--bg-card); border:1px solid var(--border); border-radius:10px; width:520px; max-width:95vw; max-height:92vh; overflow-y:auto; box-shadow:0 20px 60px rgba(0,0,0,.2); }
+.fm-header { display:flex; align-items:center; justify-content:space-between; padding:16px 20px; border-bottom:1px solid var(--border); background:var(--bg-card2); }
+.fm-title { font-size:14px; font-weight:700; }
+.fm-body { padding:20px; display:flex; flex-direction:column; gap:14px; }
+.fm-row { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+.fm-group { display:flex; flex-direction:column; gap:5px; }
+.fm-label { font-size:11px; color:var(--txt2); font-weight:600; }
+.fm-label span { color:var(--red); }
+.fm-input,.fm-select,.fm-textarea { background:var(--bg-input); border:1px solid var(--border); border-radius:var(--r-sm); color:var(--txt); font-family:var(--font); font-size:12px; padding:8px 11px; outline:none; width:100%; transition:.15s; }
+.fm-input:focus,.fm-select:focus,.fm-textarea:focus { border-color:var(--blue); background:#fff; box-shadow:0 0 0 3px rgba(61,90,241,.1); }
+.fm-select { appearance:none; background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 12 12'%3E%3Cpath fill='%235a6380' d='M6 8L1 3h10z'/%3E%3C/svg%3E"); background-repeat:no-repeat; background-position:right 10px center; }
+.fm-textarea { resize:vertical; min-height:80px; line-height:1.5; }
+.upload-z { border:1.5px dashed var(--border2); border-radius:var(--r); padding:22px; text-align:center; cursor:pointer; transition:.15s; position:relative; overflow:hidden; }
+.upload-z:hover { border-color:var(--blue); background:var(--blue-dim); }
+.upload-z input[type=file] { position:absolute; inset:0; opacity:0; cursor:pointer; width:100%; height:100%; }
+.upload-preview { display:none; margin-top:10px; text-align:left; }
+.upload-preview img { max-height:120px; max-width:100%; border-radius:var(--r-sm); border:1px solid var(--border); }
+.fm-footer { display:grid; grid-template-columns:1fr 1.4fr; gap:10px; padding:16px 20px; border-top:1px solid var(--border); }
+
+/* CONFIRM DIALOG */
+.confirm-dialog { display:none; position:fixed; inset:0; background:rgba(0,0,0,.4); z-index:400; align-items:center; justify-content:center; }
+.confirm-dialog.open { display:flex; }
+.confirm-box { background:var(--bg-card); border:1px solid var(--border2); border-radius:12px; padding:28px; width:360px; max-width:95vw; text-align:center; box-shadow:0 20px 60px rgba(0,0,0,.2); animation:pop .2s ease; }
+.confirm-icon { font-size:32px; margin-bottom:10px; }
+.confirm-title { font-size:15px; font-weight:700; margin-bottom:6px; }
+.confirm-desc { font-size:12px; color:var(--txt2); margin-bottom:20px; line-height:1.5; }
+.confirm-actions { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
+
+/* TOAST */
+.toast { position:fixed; bottom:24px; right:24px; background:var(--bg-card); border:1px solid var(--border2); border-radius:var(--r); padding:12px 16px; font-size:13px; display:flex; align-items:center; gap:10px; box-shadow:0 8px 32px rgba(0,0,0,.15); z-index:300; transform:translateY(80px); opacity:0; transition:.3s ease; pointer-events:none; }
+.toast.show { transform:translateY(0); opacity:1; pointer-events:auto; }
+.toast.toast-success { border-left:3px solid var(--green); }
+.toast.toast-error   { border-left:3px solid var(--red); }
+.toast.toast-warning { border-left:3px solid var(--yellow); }
+
+/* OVERLAY */
+.overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,.25); z-index:99; }
+.overlay.open { display:block; }
+
+/* QUICK INFO */
+.qi-row { display:flex; justify-content:space-between; align-items:center; padding:9px 0; border-bottom:1px solid var(--border); font-size:12px; }
+.qi-row:last-child { border-bottom:none; }
+.qi-key { color:var(--txt2); }
+
+/* FOTO DETAIL */
+.foto-preview-detail { width:100%; border-radius:var(--r-sm); border:1px solid var(--border); margin-top:8px; max-height:200px; object-fit:cover; cursor:pointer; transition:.15s; }
+.foto-preview-detail:hover { opacity:.85; }
+
+/* SCROLLBAR */
+::-webkit-scrollbar { width:5px; }
+::-webkit-scrollbar-track { background:transparent; }
+::-webkit-scrollbar-thumb { background:var(--border2); border-radius:4px; }
+::-webkit-scrollbar-thumb:hover { background:var(--txt3); }
+
+/* FIREBASE LOADING */
+#fbLoading {
+  position:fixed; inset:0; background:#f0f2f7; z-index:9999;
+  display:flex; flex-direction:column; align-items:center; justify-content:center;
+  font-family:'DM Sans',sans-serif; gap:14px;
+}
+.fb-spinner {
+  width:40px; height:40px; border:3px solid #dde1ec;
+  border-top-color:#3d5af1; border-radius:50%;
+  animation: spin .7s linear infinite;
+}
+@keyframes spin { to { transform:rotate(360deg); } }
+.fb-loading-txt { font-size:13px; color:#5a6380; font-weight:500; }
+.fb-loading-sub { font-size:11px; color:#9099b8; }
+</style>
+<!-- Firebase SDK -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-database-compat.js"></script>
+</head>
+<body>
+
+<!-- FIREBASE LOADING -->
+<div id="fbLoading">
+  <div class="fb-spinner"></div>
+  <div class="fb-loading-txt">🔥 Menghubungkan ke database...</div>
+  <div class="fb-loading-sub">Memuat data MonitorLab</div>
+</div>
+
+<!-- LOGIN PAGE -->
+<div id="loginPage" style="display:none;">
+  <div class="login-wrap">
+    <div class="login-logo">
+      <div class="login-logo-icon">🖥️</div>
+      <div class="login-logo-title">MonitorLab</div>
+      <div class="login-logo-sub">Sistem Monitoring &amp; Pelaporan Kerusakan Fasilitas Lab</div>
+    </div>
+    <div class="login-card">
+      <div class="login-title">Masuk ke Sistem</div>
+      <div class="login-desc">Gunakan ID dan password yang diberikan oleh koordinator laboratorium.</div>
+      <div class="login-group">
+        <label class="login-label" for="loginId">ID Pengguna</label>
+        <input class="login-input" id="loginId" type="text" placeholder="Masukkan ID pengguna" autocomplete="username">
+        <div class="login-error" id="loginIdErr">ID pengguna tidak ditemukan.</div>
+      </div>
+      <div class="login-group">
+        <label class="login-label" for="loginPw">Password</label>
+        <input class="login-input" id="loginPw" type="password" placeholder="Masukkan password" autocomplete="current-password">
+        <div class="login-error" id="loginPwErr">Password salah. Silakan coba lagi.</div>
+      </div>
+      <button class="login-btn" onclick="doLogin()">Masuk →</button>
+      <hr class="login-divider">
+      
+        <div class="login-demo-card" onclick="fillLogin('ASST-001','asisten123')">
+          <div class="login-demo-role asisten">Asisten Lab</div>
+          <div class="login-demo-id">ASST-001</div>
+          <div class="login-demo-pw">Password: asisten123</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- APP SHELL -->
+<div id="appShell" style="display:none;">
+
+<div class="toast" id="toastEl" role="alert">
+  <span id="toastIcon">✅</span>
+  <span id="toastMsg">Berhasil</span>
+</div>
+
+<div class="confirm-dialog" id="confirmDialog">
+  <div class="confirm-box">
+    <div class="confirm-icon" id="confirmIconEl">⚠️</div>
+    <div class="confirm-title" id="confirmTitle">Yakin?</div>
+    <div class="confirm-desc" id="confirmDesc">Tindakan ini tidak bisa dibatalkan.</div>
+    <div class="confirm-actions">
+      <button class="btn btn-ghost" style="justify-content:center;" onclick="closeConfirm()">Kembali</button>
+      <button class="btn btn-danger" style="justify-content:center;" id="confirmOkBtn">Ya</button>
+    </div>
+  </div>
+</div>
+
+<div class="overlay" id="overlay" onclick="closePanels()"></div>
+
+<!-- ADMIN: LAPORAN DETAIL PANEL -->
+<div class="detail-panel" id="lapDetailPanel">
+  <div class="dp-header">
+    <span class="dp-title" id="dpLapTitle">Detail Laporan</span>
+    <button class="dp-close" onclick="closePanels()">✕</button>
+  </div>
+  <div class="dp-body">
+    <div style="margin-bottom:12px;">
+      <span id="dpLapStatus" class="badge b-baru">Baru</span>
+      <span style="font-size:10px;color:var(--txt3);margin-left:8px;" id="dpLapStatusLabel">Belum Ditangani</span>
+    </div>
+    <div class="dp-section">
+      <div class="dp-section-title">Info Kerusakan</div>
+      <div class="dp-row"><span class="dp-key">PC / Perangkat</span><span class="dp-val" id="dpLapPc">—</span></div>
+      <div class="dp-row"><span class="dp-key">Kategori</span><span class="dp-val" id="dpLapKat">—</span></div>
+      <div class="dp-row"><span class="dp-key">Dilaporkan oleh</span><span class="dp-val" id="dpLapOleh">—</span></div>
+      <div class="dp-row"><span class="dp-key">Waktu lapor</span><span class="dp-val" id="dpLapWaktu">—</span></div>
+    </div>
+    <div class="dp-section">
+      <div class="dp-section-title">Deskripsi</div>
+      <div class="desc-box" id="dpLapDesc">—</div>
+    </div>
+    <div class="dp-section" id="dpFotoSection" style="display:none;">
+      <div class="dp-section-title">Foto Bukti</div>
+      <img id="dpFotoImg" class="foto-preview-detail" src="" alt="Foto bukti" onclick="window.open(this.src,'_blank')">
+    </div>
+    <div class="dp-section">
+      <div class="dp-section-title">Riwayat Status</div>
+      <div class="timeline" id="dpLapTimeline"></div>
+    </div>
+    <div class="dp-section">
+      <div class="dp-section-title">Panel Admin</div>
+      <div class="action-grid">
+        <button class="btn btn-warn btn-full" id="btnDiproses" onclick="updateStatus('diproses')">🔧 Tandai Diproses</button>
+        <button class="btn btn-success btn-full" id="btnSelesai" onclick="updateStatus('selesai')">✅ Tandai Selesai</button>
+      </div>
+      <button class="btn btn-danger btn-full" id="btnTolak" style="width:100%;justify-content:center;margin-top:8px;" onclick="updateStatus('tolak')">✕ Tolak Laporan</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN: ASET DETAIL PANEL -->
+<div class="detail-panel" id="asetDetailPanel">
+  <div class="dp-header">
+    <span class="dp-title" id="dpAsetTitle">Detail Aset</span>
+    <button class="dp-close" onclick="closePanels()">✕</button>
+  </div>
+  <div class="dp-body" id="dpAsetBody"></div>
+</div>
+
+<!-- ADMIN: EDIT ASET MODAL -->
+<div class="modal" id="editAsetModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="modal-title" id="editAsetTitle">Edit Aset</span>
+      <button class="dp-close" onclick="closeEditModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="editPcOrigNama">
+      <div class="mrow">
+        <div class="mgroup"><label class="mlabel">Nama PC <span>*</span></label><input class="minput" id="editPcNama" type="text"></div>
+        <div class="mgroup"><label class="mlabel">Lokasi Lab <span>*</span></label><select class="mselect" id="editPcLab"><option value="Lab A">Lab A — Lantai 2</option><option value="Lab B">Lab B — Lantai 1</option></select></div>
+      </div>
+      <div class="mrow">
+        <div class="mgroup"><label class="mlabel">Prosesor</label><input class="minput" id="editPcCpu" type="text"></div>
+        <div class="mgroup"><label class="mlabel">RAM</label><select class="mselect" id="editPcRam"><option>4GB</option><option>8GB</option><option>16GB</option><option>32GB</option></select></div>
+      </div>
+      <div class="mrow">
+        <div class="mgroup"><label class="mlabel">Storage</label><input class="minput" id="editPcStorage" type="text"></div>
+        <div class="mgroup"><label class="mlabel">OS</label><select class="mselect" id="editPcOs"><option>Windows 10</option><option>Windows 11</option><option>Ubuntu 22.04</option></select></div>
+      </div>
+      <div class="mrow">
+        <div class="mgroup"><label class="mlabel">IP Address</label><input class="minput" id="editPcIp" type="text"></div>
+        <div class="mgroup"><label class="mlabel">Tahun Pengadaan</label><input class="minput" id="editPcTahun" type="text"></div>
+      </div>
+      <div class="mrow">
+        <div class="mgroup"><label class="mlabel">Status</label><select class="mselect" id="editPcStatus"><option value="normal">Normal</option><option value="perlu">Perlu Cek</option><option value="rusak">Rusak</option></select></div>
+        <div class="mgroup"><label class="mlabel">Terakhir Service</label><input class="minput" id="editPcSvc" type="text" placeholder="Apr 2026"></div>
+      </div>
+      <div class="mgroup"><label class="mlabel">Catatan</label><textarea class="mtextarea" id="editPcNote" placeholder="Kondisi fisik, aksesori, dll..."></textarea></div>
+      <div id="editAsetErr" style="display:none;font-size:12px;color:var(--red);background:var(--red-dim);border-radius:var(--r-sm);padding:8px 12px;">Nama PC wajib diisi!</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" style="justify-content:center;" onclick="closeEditModal()">Batal</button>
+      <button class="btn btn-primary" style="justify-content:center;" onclick="submitEditAset()">Simpan Perubahan</button>
+    </div>
+  </div>
+</div>
+
+<!-- ADMIN: TAMBAH ASET MODAL -->
+<div class="modal" id="asetModal">
+  <div class="modal-box">
+    <div class="modal-header">
+      <span class="modal-title">Tambah Aset Baru</span>
+      <button class="dp-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div class="mrow">
+        <div class="mgroup"><label class="mlabel">Nama PC <span>*</span></label><input class="minput" id="newPcNama" type="text" placeholder="PC-A24"></div>
+        <div class="mgroup"><label class="mlabel">Lokasi Lab <span>*</span></label><select class="mselect" id="newPcLab"><option value="Lab A">Lab A — Lantai 2</option><option value="Lab B">Lab B — Lantai 1</option></select></div>
+      </div>
+      <div class="mrow">
+        <div class="mgroup"><label class="mlabel">Prosesor</label><input class="minput" id="newPcCpu" type="text" placeholder="Core i5-12400"></div>
+        <div class="mgroup"><label class="mlabel">RAM</label><select class="mselect" id="newPcRam"><option>4GB</option><option>8GB</option><option selected>16GB</option><option>32GB</option></select></div>
+      </div>
+      <div class="mrow">
+        <div class="mgroup"><label class="mlabel">Storage</label><input class="minput" id="newPcStorage" type="text" placeholder="512GB SSD"></div>
+        <div class="mgroup"><label class="mlabel">OS</label><select class="mselect" id="newPcOs"><option>Windows 10</option><option>Windows 11</option><option>Ubuntu 22.04</option></select></div>
+      </div>
+      <div class="mrow">
+        <div class="mgroup"><label class="mlabel">IP Address</label><input class="minput" id="newPcIp" type="text" placeholder="192.168.1.124"></div>
+        <div class="mgroup"><label class="mlabel">Tahun Pengadaan</label><input class="minput" id="newPcTahun" type="text" placeholder="2024"></div>
+      </div>
+      <div class="mgroup"><label class="mlabel">Catatan</label><textarea class="mtextarea" id="newPcNote" placeholder="Kondisi fisik, aksesori, dll..."></textarea></div>
+      <div id="asetModalErr" style="display:none;font-size:12px;color:var(--red);background:var(--red-dim);border-radius:var(--r-sm);padding:8px 12px;">Nama PC wajib diisi!</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" style="justify-content:center;" onclick="closeModal()">Batal</button>
+      <button class="btn btn-primary" style="justify-content:center;" onclick="submitAset()">Simpan Aset</button>
+    </div>
+  </div>
+</div>
+
+<!-- ASISTEN: PC DETAIL PANEL -->
+<div class="detail-panel" id="detailPanel">
+  <div class="dp-header">
+    <span class="dp-title" id="dpTitle">PC-A01</span>
+    <button class="dp-close" onclick="closePanels()">✕</button>
+  </div>
+  <div class="dp-body">
+    <div class="dp-section">
+      <div class="dp-section-title">Status &amp; Lokasi</div>
+      <div class="dp-row"><span class="dp-key">Status</span><span class="dp-val" id="dpStatus">—</span></div>
+      <div class="dp-row"><span class="dp-key">Lokasi</span><span class="dp-val" id="dpLokasi">—</span></div>
+      <div class="dp-row"><span class="dp-key">Terakhir Cek</span><span class="dp-val" id="dpCek">—</span></div>
+      <div class="dp-row"><span class="dp-key">IP Address</span><span class="dp-val" id="dpIp">—</span></div>
+    </div>
+    <div class="dp-section">
+      <div class="dp-section-title">Spesifikasi</div>
+      <div class="spec-grid">
+        <div class="spec-item"><div class="spec-label">CPU</div><div class="spec-val" id="dpCpu">—</div></div>
+        <div class="spec-item"><div class="spec-label">RAM</div><div class="spec-val" id="dpRam">—</div></div>
+        <div class="spec-item"><div class="spec-label">Storage</div><div class="spec-val" id="dpStorage">—</div></div>
+        <div class="spec-item"><div class="spec-label">OS</div><div class="spec-val" id="dpOs">—</div></div>
+      </div>
+    </div>
+    <div class="dp-section">
+      <div class="dp-section-title">Catatan Teknisi</div>
+      <p id="dpNote" style="font-size:12px;color:var(--txt2);line-height:1.6;">—</p>
+    </div>
+    <div class="dp-section">
+      <button class="btn btn-primary btn-full" onclick="closePanels();openLapor()">⚠️ Lapor Kerusakan PC Ini</button>
+    </div>
+  </div>
+</div>
+
+<!-- FORM LAPORAN MODAL (SINGLE STEP) -->
+<div class="form-modal" id="laporModal">
+  <div class="form-box">
+    <div class="fm-header">
+      <span class="fm-title">Lapor Kerusakan Perangkat</span>
+      <button class="dp-close" onclick="confirmCloseLapor()">✕</button>
+    </div>
+    <div class="fm-body">
+      <div class="fm-row">
+        <div class="fm-group">
+          <label class="fm-label">Nama PC <span>*</span></label>
+          <input class="fm-input" id="laporPc" type="text" placeholder="Contoh: PC-A02">
+        </div>
+        <div class="fm-group">
+          <label class="fm-label">Lokasi Lab <span>*</span></label>
+          <select class="fm-select" id="laporLab">
+            <option value="Lab A">Lab A — Lantai 2</option>
+            <option value="Lab B">Lab B — Lantai 1</option>
+          </select>
+        </div>
+      </div>
+      <div class="fm-group">
+        <label class="fm-label">Kategori Kerusakan <span>*</span></label>
+        <select class="fm-select" id="laporKat">
+          <option value="Hardware">Hardware (Monitor, Keyboard, CPU)</option>
+          <option value="Software">Software (OS, Aplikasi)</option>
+          <option value="Jaringan">Jaringan (Internet, LAN)</option>
+          <option value="Lainnya">Lainnya</option>
+        </select>
+      </div>
+      <div class="fm-group">
+        <label class="fm-label">Deskripsi Kerusakan <span>*</span></label>
+        <textarea class="fm-textarea" id="laporDesc" placeholder="Jelaskan kerusakan secara detail..."></textarea>
+      </div>
+      <div class="fm-group">
+        <label class="fm-label">Foto Bukti <span style="color:var(--txt3);font-weight:400;">(opsional)</span></label>
+        <div class="upload-z" id="uploadZone">
+          <input type="file" id="laporFoto" accept="image/png,image/jpeg,image/jpg" onchange="previewFoto(this)">
+          <div id="uploadPlaceholder">
+            <div style="font-size:24px;margin-bottom:6px;">📷</div>
+            <div style="font-size:12px;color:var(--txt2);">Klik atau drag foto ke sini</div>
+            <div style="font-size:11px;color:var(--txt3);margin-top:3px;">PNG, JPG, max 5MB</div>
+          </div>
+          <div class="upload-preview" id="uploadPreview">
+            <img id="uploadPreviewImg" src="" alt="Preview" style="max-height:120px;max-width:100%;border-radius:var(--r-sm);border:1px solid var(--border);">
+            <div style="font-size:11px;color:var(--green);margin-top:6px;" id="uploadFileName">foto.jpg</div>
+            <button type="button" onclick="clearFoto(event)" style="font-size:10px;color:var(--red);background:none;border:none;cursor:pointer;margin-top:4px;">✕ Hapus foto</button>
+          </div>
+        </div>
+      </div>
+      <div id="laporErr" style="display:none;font-size:12px;color:var(--red);background:var(--red-dim);border-radius:var(--r-sm);padding:8px 12px;">Nama PC dan deskripsi wajib diisi!</div>
+    </div>
+    <div class="fm-footer">
+      <button class="btn btn-ghost" style="justify-content:center;" onclick="saveDraft()">Simpan Draft</button>
+      <button class="btn btn-primary" style="justify-content:center;" onclick="submitLapor()">Kirim Laporan →</button>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP LAYOUT -->
+<div class="app-layout">
+  <div class="sidebar" id="sidebarEl"></div>
+  <div class="main">
+    <div class="topbar" id="topbarEl"></div>
+    <div class="content" id="contentEl"></div>
+  </div>
+</div>
+
+
+<!-- MODAL TAMBAH/EDIT PENGGUNA -->
+<div class="modal" id="userModal">
+  <div class="modal-box" style="max-width:520px;">
+    <div class="modal-header">
+      <span class="modal-title" id="userModalTitle">Tambah Pengguna</span>
+      <button class="dp-close" onclick="closeUserModal()">&#x2715;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="userModalOrigId">
+      <div class="mrow">
+        <div class="mgroup"><label class="mlabel">ID Pengguna <span style="color:var(--red)">*</span></label><input class="minput" id="userModalId" type="text" placeholder="Contoh: ASST-002"></div>
+        <div class="mgroup"><label class="mlabel">Nama Lengkap <span style="color:var(--red)">*</span></label><input class="minput" id="userModalNama" type="text" placeholder="Contoh: Budi Santoso"></div>
+      </div>
+      <div class="mrow">
+        <div class="mgroup"><label class="mlabel">Password <span style="color:var(--red)">*</span></label><input class="minput" id="userModalPw" type="text" placeholder="Min. 6 karakter"></div>
+        <div class="mgroup"><label class="mlabel">Inisial (2-3 huruf)</label><input class="minput" id="userModalInisial" type="text" placeholder="BS" maxlength="3"></div>
+      </div>
+      <div class="mgroup" style="margin-top:4px;">
+        <label class="mlabel">Ditugaskan ke Lab <span style="color:var(--txt3);font-weight:400;">(boleh lebih dari satu)</span></label>
+        <div id="userModalLabList" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;"></div>
+      </div>
+      <div id="userModalErr" style="display:none;font-size:12px;color:var(--red);background:var(--red-dim);border-radius:var(--r-sm);padding:8px 12px;margin-top:8px;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" style="justify-content:center;" onclick="closeUserModal()">Batal</button>
+      <button class="btn btn-primary" style="justify-content:center;" onclick="submitUserModal()">Simpan Pengguna</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL TAMBAH/EDIT LAB -->
+<div class="modal" id="labModal">
+  <div class="modal-box" style="max-width:420px;">
+    <div class="modal-header">
+      <span class="modal-title" id="labModalTitle">Tambah Lab</span>
+      <button class="dp-close" onclick="closeLabModal()">&#x2715;</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="labModalOrigId">
+      <div class="mrow">
+        <div class="mgroup"><label class="mlabel">Nama Lab <span style="color:var(--red)">*</span></label><input class="minput" id="labModalNama" type="text" placeholder="Contoh: Lab C"></div>
+        <div class="mgroup"><label class="mlabel">Lantai / Lokasi <span style="color:var(--red)">*</span></label><input class="minput" id="labModalLantai" type="text" placeholder="Contoh: Lantai 3"></div>
+      </div>
+      <div id="labModalErr" style="display:none;font-size:12px;color:var(--red);background:var(--red-dim);border-radius:var(--r-sm);padding:8px 12px;margin-top:8px;"></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" style="justify-content:center;" onclick="closeLabModal()">Batal</button>
+      <button class="btn btn-primary" style="justify-content:center;" onclick="submitLabModal()">Simpan Lab</button>
+    </div>
+  </div>
+</div>
+</div><!-- /appShell -->
+
+<script>
+// ═══════════════════════════════════════
+// FIREBASE CONFIG & INIT
+// ═══════════════════════════════════════
+const firebaseConfig = {
+  apiKey: "AIzaSyD48P6G89uaB8xHo-88MQcDGNVizZdbS74",
+  authDomain: "monitorlab-120122.firebaseapp.com",
+  databaseURL: "https://monitorlab-120122-default-rtdb.asia-southeast1.firebasedatabase.app",
+  projectId: "monitorlab-120122",
+  storageBucket: "monitorlab-120122.firebasestorage.app",
+  messagingSenderId: "323658898360",
+  appId: "1:323658898360:web:5310ed6d912ed7ba158d4d"
+};
+firebase.initializeApp(firebaseConfig);
+const db = firebase.database();
+
+// ── Firebase helpers ──
+function fbSaveAset(){
+  db.ref('asetData').set(asetData).catch(e=>console.error('FB aset save:',e));
+}
+function fbSaveLaporan(){
+  db.ref('laporanData').set(laporanData).catch(e=>console.error('FB laporan save:',e));
+}
+function fbSavePcData(){
+  db.ref('pcData').set(pcData).catch(e=>console.error('FB pcData save:',e));
+}
+
+// ── Firebase save helpers untuk users & labs ──
+function fbSaveUsers(){ db.ref('users').set(USERS).catch(e=>console.error('FB users:',e)); }
+function fbSaveLabs(){ db.ref('labsData').set(labsData).catch(e=>console.error('FB labs:',e)); }
+
+// ── Load data from Firebase then start app ──
+function fbLoadAndStart(){
+  const loaded={aset:false,laporan:false,pc:false,users:false,labs:false};
+  function tryStart(){
+    if(Object.values(loaded).every(Boolean)){
+      document.getElementById('fbLoading').style.display='none';
+      document.getElementById('loginPage').style.display='flex';
+    }
+  }
+  db.ref('users').once('value', snap=>{
+    const val=snap.val();
+    if(val&&typeof val==='object'&&Object.keys(val).length>0){ USERS=val; }
+    else { USERS={'ADM-001':{pw:'admin123',role:'admin',nama:'Administrator',inisial:'AD',labs:[]}}; fbSaveUsers(); }
+    loaded.users=true; tryStart();
+  }).catch(()=>{ loaded.users=true; tryStart(); });
+  db.ref('labsData').once('value', snap=>{
+    const val=snap.val();
+    if(val&&Array.isArray(val)&&val.length>0){ labsData.length=0; val.forEach(l=>labsData.push(l)); }
+    else { fbSaveLabs(); }
+    loaded.labs=true; tryStart();
+  }).catch(()=>{ loaded.labs=true; tryStart(); });
+  db.ref('asetData').once('value', snap=>{
+    const val=snap.val();
+    if(val&&Array.isArray(val)&&val.length>0){ asetData.length=0; val.forEach(a=>asetData.push(a)); }
+    else { fbSaveAset(); }
+    loaded.aset=true; tryStart();
+  }).catch(()=>{ loaded.aset=true; tryStart(); });
+  db.ref('laporanData').once('value', snap=>{
+    const val=snap.val();
+    if(val&&Array.isArray(val)&&val.length>0){ laporanData.length=0; val.forEach(l=>laporanData.push(l)); }
+    else { fbSaveLaporan(); }
+    loaded.laporan=true; tryStart();
+  }).catch(()=>{ loaded.laporan=true; tryStart(); });
+  db.ref('pcData').once('value', snap=>{
+    const val=snap.val();
+    if(val&&Array.isArray(val)&&val.length>0){ pcData.length=0; val.forEach(p=>pcData.push(p)); }
+    else { fbSavePcData(); }
+    loaded.pc=true; tryStart();
+  }).catch(()=>{ loaded.pc=true; tryStart(); });
+}
+
+// ═══════════════════════════════════════
+// SHARED STATE (sinkron antar dashboard)
+// ═══════════════════════════════════════
+// Users dimuat dari Firebase
+let USERS = {};
+// Labs dimuat dari Firebase
+let labsData = [
+  { id:'lab-a', nama:'Lab A', lantai:'Lantai 2' },
+  { id:'lab-b', nama:'Lab B', lantai:'Lantai 1' },
+];
+
+// Shared laporan data (dipakai oleh admin & asisten)
+let laporanData = [
+  {id:'#LPR-2024-019',pc:'PC-A02',pelapor:'Meuthia A.',kategori:'Hardware',kat_badge:'b-hw',deskripsi:'Monitor tidak menyala sejak pagi. Lampu indikator tidak menyala sama sekali.',status:'baru',waktu:'19 Mei 2026 · 08:15',foto:null},
+  {id:'#LPR-2024-018',pc:'PC-B05',pelapor:'M. Ridho H.',kategori:'Software',kat_badge:'b-sw',deskripsi:'Windows tidak bisa booting. Layar biru terus muncul saat startup.',status:'baru',waktu:'19 Mei 2026 · 09:10',foto:null},
+  {id:'#LPR-2024-017',pc:'PC-A03',pelapor:'Meuthia A.',kategori:'Hardware',kat_badge:'b-hw',deskripsi:'Keyboard tidak responsif di beberapa tombol. Tombol abjad banyak yang tidak berfungsi.',status:'baru',waktu:'18 Mei 2026 · 14:30',foto:null},
+  {id:'#LPR-2024-016',pc:'PC-A07',pelapor:'Meuthia A.',kategori:'Jaringan',kat_badge:'b-net',deskripsi:'Tidak bisa konek ke internet sejak pagi hari.',status:'diproses',waktu:'18 Mei 2026 · 14:00',foto:null},
+  {id:'#LPR-2024-015',pc:'PC-A12',pelapor:'Meuthia A.',kategori:'Hardware',kat_badge:'b-hw',deskripsi:'Kipas berbunyi keras, suhu CPU tinggi.',status:'diproses',waktu:'18 Mei 2026 · 09:00',foto:null},
+  {id:'#LPR-2024-014',pc:'PC-B08',pelapor:'M. Ridho H.',kategori:'Software',kat_badge:'b-sw',deskripsi:'Aplikasi Ms. Office tidak bisa dibuka.',status:'diproses',waktu:'17 Mei 2026 · 15:00',foto:null},
+  {id:'#LPR-2024-013',pc:'PC-A03',pelapor:'Meuthia A.',kategori:'Hardware',kat_badge:'b-hw',deskripsi:'Keyboard tidak responsif di beberapa tombol.',status:'diproses',waktu:'17 Mei 2026 · 11:00',foto:null},
+  {id:'#LPR-2024-012',pc:'PC-B11',pelapor:'Arif N.',kategori:'Hardware',kat_badge:'b-hw',deskripsi:'Mouse tidak terdeteksi.',status:'diproses',waktu:'16 Mei 2026 · 13:00',foto:null},
+  {id:'#LPR-2024-011',pc:'PC-B07',pelapor:'M. Ridho H.',kategori:'Hardware',kat_badge:'b-hw',deskripsi:'Keyboard rusak, beberapa tombol tidak berfungsi.',status:'selesai',waktu:'17 Mei 2026 · 10:00',foto:null},
+  {id:'#LPR-2024-010',pc:'PC-A01',pelapor:'Meuthia A.',kategori:'Software',kat_badge:'b-sw',deskripsi:'Windows tidak bisa update.',status:'selesai',waktu:'15 Mei 2026 · 11:20',foto:null},
+  {id:'#LPR-2024-009',pc:'PC-A06',pelapor:'Meuthia A.',kategori:'Hardware',kat_badge:'b-hw',deskripsi:'Mouse klik kiri rusak.',status:'selesai',waktu:'12 Mei 2026 · 13:00',foto:null},
+  {id:'#LPR-2024-008',pc:'PC-A11',pelapor:'M. Ridho H.',kategori:'Software',kat_badge:'b-sw',deskripsi:'Antivirus expired.',status:'selesai',waktu:'10 Mei 2026 · 09:00',foto:null},
+];
+
+let asetData = [
+  {name:'PC-A01',lab:'Lab A',row:'Lantai 2',cpu:'Core i5-10400',ram:'8GB',storage:'256GB SSD',os:'Win 10',ip:'192.168.1.101',tahun:'2021',status:'normal',svc:'Maret 2026'},
+  {name:'PC-A02',lab:'Lab A',row:'Lantai 2',cpu:'Core i5-10400',ram:'8GB',storage:'256GB SSD',os:'Win 10',ip:'192.168.1.102',tahun:'2021',status:'rusak',svc:'Jan 2026'},
+  {name:'PC-A03',lab:'Lab A',row:'Lantai 2',cpu:'Core i5-10400',ram:'8GB',storage:'256GB SSD',os:'Win 10',ip:'192.168.1.103',tahun:'2021',status:'perlu',svc:'Feb 2026'},
+  {name:'PC-A04',lab:'Lab A',row:'Lantai 2',cpu:'Core i5-10400',ram:'8GB',storage:'256GB SSD',os:'Win 10',ip:'192.168.1.104',tahun:'2021',status:'normal',svc:'Apr 2026'},
+  {name:'PC-A05',lab:'Lab A',row:'Lantai 2',cpu:'Core i5-10400',ram:'8GB',storage:'256GB SSD',os:'Win 10',ip:'192.168.1.105',tahun:'2021',status:'normal',svc:'Apr 2026'},
+  {name:'PC-A06',lab:'Lab A',row:'Lantai 2',cpu:'Core i5-10400',ram:'16GB',storage:'512GB SSD',os:'Win 11',ip:'192.168.1.106',tahun:'2022',status:'normal',svc:'Mar 2026'},
+  {name:'PC-A07',lab:'Lab A',row:'Lantai 2',cpu:'Core i5-12400',ram:'16GB',storage:'512GB SSD',os:'Win 11',ip:'192.168.1.107',tahun:'2023',status:'perlu',svc:'Mar 2026'},
+  {name:'PC-A08',lab:'Lab A',row:'Lantai 2',cpu:'Core i5-12400',ram:'16GB',storage:'512GB SSD',os:'Win 11',ip:'192.168.1.108',tahun:'2023',status:'normal',svc:'Apr 2026'},
+  {name:'PC-A09',lab:'Lab A',row:'Lantai 2',cpu:'Core i5-10400',ram:'8GB',storage:'256GB SSD',os:'Win 10',ip:'192.168.1.109',tahun:'2021',status:'normal',svc:'Apr 2026'},
+  {name:'PC-A10',lab:'Lab A',row:'Lantai 2',cpu:'Core i5-10400',ram:'8GB',storage:'256GB SSD',os:'Win 10',ip:'192.168.1.110',tahun:'2021',status:'normal',svc:'Apr 2026'},
+  {name:'PC-A11',lab:'Lab A',row:'Lantai 2',cpu:'Core i5-10400',ram:'8GB',storage:'256GB SSD',os:'Win 10',ip:'192.168.1.111',tahun:'2021',status:'normal',svc:'Apr 2026'},
+  {name:'PC-A12',lab:'Lab A',row:'Lantai 2',cpu:'Core i5-10400',ram:'8GB',storage:'256GB SSD',os:'Win 10',ip:'192.168.1.112',tahun:'2021',status:'perlu',svc:'Jan 2026'},
+  {name:'PC-A13',lab:'Lab A',row:'Lantai 2',cpu:'Core i5-10400',ram:'8GB',storage:'256GB SSD',os:'Win 10',ip:'192.168.1.113',tahun:'2021',status:'normal',svc:'Mar 2026'},
+  {name:'PC-A14',lab:'Lab A',row:'Lantai 2',cpu:'Core i5-10400',ram:'8GB',storage:'256GB SSD',os:'Win 10',ip:'192.168.1.114',tahun:'2021',status:'normal',svc:'Apr 2026'},
+  {name:'PC-A15',lab:'Lab A',row:'Lantai 2',cpu:'Core i5-10400',ram:'8GB',storage:'256GB SSD',os:'Win 10',ip:'192.168.1.115',tahun:'2021',status:'normal',svc:'Apr 2026'},
+  {name:'PC-B01',lab:'Lab B',row:'Lantai 1',cpu:'Core i5-10400',ram:'8GB',storage:'256GB SSD',os:'Win 10',ip:'192.168.2.101',tahun:'2021',status:'normal',svc:'Apr 2026'},
+  {name:'PC-B02',lab:'Lab B',row:'Lantai 1',cpu:'Core i5-10400',ram:'8GB',storage:'256GB SSD',os:'Win 10',ip:'192.168.2.102',tahun:'2021',status:'normal',svc:'Apr 2026'},
+  {name:'PC-B03',lab:'Lab B',row:'Lantai 1',cpu:'Core i5-10400',ram:'8GB',storage:'256GB SSD',os:'Win 10',ip:'192.168.2.103',tahun:'2021',status:'rusak',svc:'Feb 2026'},
+  {name:'PC-B04',lab:'Lab B',row:'Lantai 1',cpu:'Core i5-10400',ram:'8GB',storage:'256GB SSD',os:'Win 10',ip:'192.168.2.104',tahun:'2021',status:'normal',svc:'Apr 2026'},
+  {name:'PC-B05',lab:'Lab B',row:'Lantai 1',cpu:'Core i5-10400',ram:'8GB',storage:'256GB SSD',os:'Win 10',ip:'192.168.2.105',tahun:'2021',status:'perlu',svc:'Jan 2026'},
+  {name:'PC-B06',lab:'Lab B',row:'Lantai 1',cpu:'Core i5-10400',ram:'8GB',storage:'256GB SSD',os:'Win 10',ip:'192.168.2.106',tahun:'2021',status:'normal',svc:'Mar 2026'},
+  {name:'PC-B07',lab:'Lab B',row:'Lantai 1',cpu:'Core i5-10400',ram:'8GB',storage:'256GB SSD',os:'Win 10',ip:'192.168.2.107',tahun:'2021',status:'normal',svc:'Mei 2026'},
+  {name:'PC-B08',lab:'Lab B',row:'Lantai 1',cpu:'Core i5-10400',ram:'8GB',storage:'256GB SSD',os:'Win 10',ip:'192.168.2.108',tahun:'2021',status:'perlu',svc:'Feb 2026'},
+  {name:'PC-B09',lab:'Lab B',row:'Lantai 1',cpu:'Core i3-8100',ram:'4GB',storage:'128GB SSD',os:'Win 10',ip:'—',tahun:'2019',status:'rusak',svc:'Okt 2025'},
+  {name:'PC-B10',lab:'Lab B',row:'Lantai 1',cpu:'Core i5-10400',ram:'8GB',storage:'256GB SSD',os:'Win 10',ip:'192.168.2.110',tahun:'2021',status:'normal',svc:'Apr 2026'},
+  {name:'PC-B11',lab:'Lab B',row:'Lantai 1',cpu:'Core i5-10400',ram:'8GB',storage:'256GB SSD',os:'Win 10',ip:'192.168.2.111',tahun:'2021',status:'normal',svc:'Apr 2026'},
+  {name:'PC-B12',lab:'Lab B',row:'Lantai 1',cpu:'Core i5-10400',ram:'8GB',storage:'256GB SSD',os:'Win 10',ip:'192.168.2.112',tahun:'2021',status:'normal',svc:'Apr 2026'},
+];
+
+const pcData = [
+  {name:'PC-A01',status:'normal',row:'Lantai 2',ip:'192.168.1.101',cek:'08:30',cpu:'Core i5-10400',ram:'8GB',storage:'256GB SSD',os:'Win 10',note:'Unit berfungsi normal.'},
+  {name:'PC-A02',status:'rusak', row:'Lantai 2',ip:'192.168.1.102',cek:'08:15',cpu:'Core i5-10400',ram:'8GB',storage:'256GB SSD',os:'Win 10',note:'Monitor tidak menyala. Laporan sudah dibuat.'},
+  {name:'PC-A03',status:'perlu', row:'Lantai 2',ip:'192.168.1.103',cek:'07:45',cpu:'Core i5-10400',ram:'8GB',storage:'256GB SSD',os:'Win 10',note:'Keyboard tidak responsif di beberapa tombol.'},
+  {name:'PC-A04',status:'normal',row:'Lantai 2',ip:'192.168.1.104',cek:'08:30',cpu:'Core i5-10400',ram:'8GB',storage:'256GB SSD',os:'Win 10',note:'Unit berfungsi normal.'},
+  {name:'PC-A05',status:'normal',row:'Lantai 2',ip:'192.168.1.105',cek:'08:28',cpu:'Core i5-10400',ram:'8GB',storage:'256GB SSD',os:'Win 10',note:'Unit berfungsi normal.'},
+  {name:'PC-A06',status:'normal',row:'Lantai 2',ip:'192.168.1.106',cek:'08:29',cpu:'Core i5-10400',ram:'16GB',storage:'512GB SSD',os:'Win 11',note:'Berfungsi normal.'},
+  {name:'PC-A07',status:'normal',row:'Lantai 2',ip:'192.168.1.107',cek:'08:27',cpu:'Core i5-12400',ram:'16GB',storage:'512GB SSD',os:'Win 11',note:'Unit berfungsi normal.'},
+  {name:'PC-A08',status:'normal',row:'Lantai 2',ip:'192.168.1.108',cek:'08:26',cpu:'Core i5-12400',ram:'16GB',storage:'512GB SSD',os:'Win 11',note:'Unit berfungsi normal.'},
+  {name:'PC-A09',status:'normal',row:'Lantai 2',ip:'192.168.1.109',cek:'08:30',cpu:'Core i5-10400',ram:'8GB',storage:'256GB SSD',os:'Win 10',note:'Unit berfungsi normal.'},
+  {name:'PC-A10',status:'normal',row:'Lantai 2',ip:'192.168.1.110',cek:'08:30',cpu:'Core i5-10400',ram:'8GB',storage:'256GB SSD',os:'Win 10',note:'Unit berfungsi normal.'},
+  {name:'PC-A11',status:'normal',row:'Lantai 2',ip:'192.168.1.111',cek:'08:29',cpu:'Core i5-10400',ram:'8GB',storage:'256GB SSD',os:'Win 10',note:'Unit berfungsi normal.'},
+  {name:'PC-A12',status:'perlu', row:'Lantai 2',ip:'192.168.1.112',cek:'07:50',cpu:'Core i5-10400',ram:'8GB',storage:'256GB SSD',os:'Win 10',note:'Kipas berbunyi keras. Perlu cek termal.'},
+  {name:'PC-B05',status:'normal',row:'Lantai 1',ip:'192.168.2.105',cek:'08:20',cpu:'Core i5-10400',ram:'8GB',storage:'256GB SSD',os:'Win 10',note:'Unit berfungsi normal.'},
+  {name:'PC-B07',status:'perlu', row:'Lantai 1',ip:'192.168.2.107',cek:'08:10',cpu:'Core i5-10400',ram:'8GB',storage:'256GB SSD',os:'Win 10',note:'Koneksi internet bermasalah.'},
+  {name:'PC-B09',status:'rusak', row:'Lantai 1',ip:'—',cek:'08:05',cpu:'Core i3-8100',ram:'4GB',storage:'128GB SSD',os:'Win 10',note:'PC offline, tidak merespon ping.'},
+];
+
+const statusLabel = {baru:'Baru',diproses:'Diproses',selesai:'Selesai',tolak:'Ditolak',draft:'Draft'};
+const statusClass  = {baru:'b-baru',diproses:'b-diproses',selesai:'b-selesai',tolak:'b-tolak',draft:'b-draft'};
+const statusAksi   = {baru:'<a class="link-act">Tinjau →</a>',diproses:'<a class="link-update">Update →</a>',selesai:'<a class="link-view">Lihat →</a>',tolak:'<span style="font-size:11px;color:var(--txt3);">Ditolak</span>',draft:'<span style="font-size:11px;color:var(--txt3);">Draft</span>'};
+const statusBadge = {normal:'b-normal',rusak:'b-rusak',perlu:'b-perlu'};
+const statusTxt   = {normal:'Aktif',rusak:'Rusak',perlu:'Perlu Cek'};
+const pcStatusLabel = {normal:'Normal',rusak:'Rusak',perlu:'Perlu Cek'};
+const pcStatusBadge = {normal:'b-normal',rusak:'b-rusak',perlu:'b-perlu'};
+
+let currentUser = null;
+let currentLapIdx = null;
+let currentAsetFilter = 'semua';
+let currentInboxFilter = 'semua';
+let currentInboxKatFilter = '';
+let currentPcFilter = 'all';
+let currentAsLaporFilter = 'semua';
+let laporFotoDataURL = null;
+let draftData = null;
+let laporIdCounter = 20;
+
+// ═══════════════════════════════════════
+// COMPUTED COUNTS (real-time)
+// ═══════════════════════════════════════
+function getAsetCounts(){
+  const total = asetData.length;
+  const normal = asetData.filter(a=>a.status==='normal').length;
+  const perlu = asetData.filter(a=>a.status==='perlu').length;
+  const rusak = asetData.filter(a=>a.status==='rusak').length;
+  return {total,normal,perlu,rusak};
+}
+
+// Sinkronisasi asetData → pcData agar dashboard asisten selalu update
+function syncAsetToPcData(){
+  // Rebuild pcData dari asetData, pertahankan field operasional (cek, note) jika ada
+  const existingMap={};
+  pcData.forEach(p=>{ existingMap[p.name]=p; });
+  // Update pcData menjadi cerminan asetData
+  pcData.length=0;
+  asetData.forEach(a=>{
+    const existing=existingMap[a.name];
+    pcData.push({
+      name:a.name,
+      status:a.status,
+      row:a.row,
+      ip:a.ip,
+      cek:existing?existing.cek:'—',
+      cpu:a.cpu,
+      ram:a.ram,
+      storage:a.storage,
+      os:a.os,
+      note:existing?existing.note:(a.note||'')
+    });
+  });
+}
+function getLaporCounts(){
+  const baru = laporanData.filter(l=>l.status==='baru').length;
+  const diproses = laporanData.filter(l=>l.status==='diproses').length;
+  const selesai = laporanData.filter(l=>l.status==='selesai').length;
+  const total = laporanData.length;
+  return {baru,diproses,selesai,total};
+}
+function getPcCounts(){
+  const normal = pcData.filter(p=>p.status==='normal').length;
+  const perlu = pcData.filter(p=>p.status==='perlu').length;
+  const rusak = pcData.filter(p=>p.status==='rusak').length;
+  const total = pcData.length;
+  return {normal,perlu,rusak,total};
+}
+// Laporan milik asisten (pelapor = Meuthia A.)
+function getAsLaporCounts(){
+  const mine = laporanData.filter(l=>l.pelapor===currentUser.nama);
+  const baru = mine.filter(l=>l.status==='baru').length;
+  const diproses = mine.filter(l=>l.status==='diproses').length;
+  const selesai = mine.filter(l=>l.status==='selesai').length;
+  return {baru,diproses,selesai,total:mine.length};
+}
+
+// ═══════════════════════════════════════
+// TOAST / CONFIRM
+// ═══════════════════════════════════════
+let toastTimer;
+function showToast(type,icon,msg){
+  const el=document.getElementById('toastEl');
+  el.className='toast toast-'+type;
+  document.getElementById('toastIcon').textContent=icon;
+  document.getElementById('toastMsg').textContent=msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>el.classList.remove('show'),3200);
+}
+
+let confirmCallback=null;
+function showConfirm(title,desc,okLabel,okClass,cb){
+  document.getElementById('confirmTitle').textContent=title;
+  document.getElementById('confirmDesc').textContent=desc;
+  const btn=document.getElementById('confirmOkBtn');
+  btn.textContent=okLabel;
+  btn.className=`btn ${okClass}`;
+  btn.style.justifyContent='center';
+  confirmCallback=cb;
+  btn.onclick=()=>{ closeConfirm(); if(confirmCallback) confirmCallback(); };
+  document.getElementById('confirmDialog').classList.add('open');
+}
+function closeConfirm(){ document.getElementById('confirmDialog').classList.remove('open'); }
+
+// ═══════════════════════════════════════
+// PANELS
+// ═══════════════════════════════════════
+function closePanels(){
+  ['lapDetailPanel','asetDetailPanel','detailPanel'].forEach(id=>{
+    const el=document.getElementById(id);
+    if(el) el.classList.remove('open');
+  });
+  document.getElementById('overlay').classList.remove('open');
+}
+
+// ═══════════════════════════════════════
+// LOGIN
+// ═══════════════════════════════════════
+function fillLogin(id,pw){
+  document.getElementById('loginId').value=id;
+  document.getElementById('loginPw').value=pw;
+}
+function doLogin(){
+  const id=document.getElementById('loginId').value.trim();
+  const pw=document.getElementById('loginPw').value;
+  document.getElementById('loginIdErr').classList.remove('show');
+  document.getElementById('loginPwErr').classList.remove('show');
+  document.getElementById('loginId').classList.remove('error');
+  document.getElementById('loginPw').classList.remove('error');
+  const user=USERS[id];
+  if(!user){ document.getElementById('loginIdErr').classList.add('show'); document.getElementById('loginId').classList.add('error'); return; }
+  if(user.pw!==pw){ document.getElementById('loginPwErr').classList.add('show'); document.getElementById('loginPw').classList.add('error'); return; }
+  const userLabs=user.labs||[];
+  const labLabel=user.role==='admin'?'Semua Lab':(userLabs.length>0?userLabs.join(', '):'Belum ditugaskan');
+  currentUser={...user,id,labLabel};
+  document.getElementById('loginPage').style.display='none';
+  document.getElementById('appShell').style.display='block';
+  startRealtimeListeners();
+  if(user.role==='admin') initAdmin();
+  else initAsisten();
+}
+function doLogout(){
+  db.ref('asetData').off();
+  db.ref('laporanData').off();
+  db.ref('pcData').off();
+  db.ref('users').off();
+  db.ref('labsData').off();
+  document.getElementById('appShell').style.display='none';
+  document.getElementById('loginPage').style.display='flex';
+  document.getElementById('loginId').value='';
+  document.getElementById('loginPw').value='';
+  currentUser=null; currentLapIdx=null; laporFotoDataURL=null; draftData=null;
+}
+document.addEventListener('keydown',e=>{ if(e.key==='Enter'&&document.getElementById('loginPage').style.display!=='none') doLogin(); });
+
+// ═══════════════════════════════════════
+// ════ ADMIN ════
+// ═══════════════════════════════════════
+function initAdmin(){
+  document.getElementById('sidebarEl').innerHTML=`
+    <div class="sb-logo">
+      <span style="font-size:20px;">🖥️</span>
+      <span class="sb-logo-text">MonitorLab</span>
+      <span class="sb-badge-admin">Admin</span>
+    </div>
+    <div class="sb-section">
+      <div class="sb-section-label">Menu</div>
+      <div class="sb-item active" onclick="adminNav('overview',this)"><span class="sb-item-icon">📊</span> Overview</div>
+      <div class="sb-item" onclick="adminNav('inbox',this)"><span class="sb-item-icon">📥</span> Inbox Laporan<span class="sb-item-badge" id="inboxBadge">3</span></div>
+      <div class="sb-item" onclick="adminNav('aset',this)"><span class="sb-item-icon">🖥️</span> Kelola Aset</div>
+      <div class="sb-item" onclick="adminNav('pengguna',this)"><span class="sb-item-icon">👥</span> Kelola Pengguna</div>
+      <div class="sb-item" onclick="adminNav('lab',this)"><span class="sb-item-icon">🏫</span> Kelola Lab</div>
+    </div>
+    <div class="sb-bottom">
+      <div class="user-row">
+        <div class="user-avatar admin">${currentUser.inisial}</div>
+        <div><div class="user-name">${currentUser.nama}</div><div class="user-role">Admin · Semua Lab</div></div>
+      </div>
+      <button class="sb-logout" onclick="doLogout()">↩ Keluar</button>
+    </div>`;
+  document.getElementById('topbarEl').innerHTML=`
+    <span class="topbar-title" id="topbarTitle">Overview</span>
+    <span class="notif-pill" id="topbarNotif">3 Laporan Baru</span>
+    <div class="admin-av">${currentUser.inisial}</div>`;
+  document.getElementById('contentEl').innerHTML=adminPagesHTML();
+  renderInbox();
+  renderAset();
+  updateAdminOverview();
+  adminNav('overview',document.querySelector('#sidebarEl .sb-item'));
+}
+
+function adminNav(pageId,el){
+  document.querySelectorAll('#contentEl .page').forEach(p=>p.classList.remove('active'));
+  const pg=document.getElementById('adm-page-'+pageId);
+  if(pg) pg.classList.add('active');
+  document.querySelectorAll('#sidebarEl .sb-item').forEach(i=>i.classList.remove('active'));
+  if(el) el.classList.add('active');
+  const titles={overview:'Overview',inbox:'Inbox Laporan Kerusakan',aset:'Kelola Aset',pengguna:'Kelola Pengguna',lab:'Kelola Lab'};
+  document.getElementById('topbarTitle').textContent=titles[pageId]||pageId;
+  closePanels();
+  document.getElementById('contentEl').scrollTop=0;
+  if(pageId==='overview') updateAdminOverview();
+  if(pageId==='aset') { renderAset(); updateAsetCards(); }
+  if(pageId==='pengguna') renderPengguna();
+  if(pageId==='lab') renderLab();
+  if(pageId==='inbox') { renderInbox(); updateInboxCards(); }
+}
+
+// Update overview cards from real data
+function updateAdminOverview(){
+  const lc=getLaporCounts();
+  const ac=getAsetCounts();
+  setEl('adm-ov-baru', lc.baru);
+  setEl('adm-ov-diproses', lc.diproses);
+  setEl('adm-ov-selesai', lc.selesai);
+  setEl('adm-ov-aset', ac.total);
+  // update kondisi aset mini
+  setEl('adm-cond-normal', ac.normal);
+  setEl('adm-cond-perlu', ac.perlu);
+  setEl('adm-cond-rusak', ac.rusak);
+  const labA = asetData.filter(a=>a.lab==='Lab A');
+  const labB = asetData.filter(a=>a.lab==='Lab B');
+  const labANorm = labA.filter(a=>a.status==='normal').length;
+  const labBNorm = labB.filter(a=>a.status==='normal').length;
+  const labAPct = labA.length ? Math.round(labANorm/labA.length*100) : 0;
+  const labBPct = labB.length ? Math.round(labBNorm/labB.length*100) : 0;
+  setEl('adm-laba-pct', `${labAPct}% Normal`);
+  setEl('adm-labb-pct', `${labBPct}% Normal`);
+  setEl('adm-laba-unit', `Lab A (${labA.length} unit)`);
+  setEl('adm-labb-unit', `Lab B (${labB.length} unit)`);
+  const labABar=document.getElementById('adm-laba-bar');
+  const labBBar=document.getElementById('adm-labb-bar');
+  if(labABar) labABar.style.width=labAPct+'%';
+  if(labBBar) labBBar.style.width=labBPct+'%';
+  // recent laporan table
+  renderOverviewRecentLaporan();
+  // aktivitas
+  renderAdminAktivitas();
+}
+
+function renderOverviewRecentLaporan(){
+  const tb=document.getElementById('adm-recent-tbody');
+  if(!tb) return;
+  const recent=laporanData.slice(0,5);
+  if(recent.length===0){ tb.innerHTML=`<tr><td colspan="5" style="text-align:center;padding:24px;color:var(--txt3);">Belum ada laporan.</td></tr>`; return; }
+  tb.innerHTML=recent.map(l=>`
+    <tr onclick="openLapDetail('${l.id}')">
+      <td><span class="tbl-name">${l.pc}</span></td>
+      <td style="font-size:11px;color:var(--txt2);">${l.pelapor}</td>
+      <td><span class="badge ${l.kat_badge}">${l.kategori}</span></td>
+      <td><span class="badge ${statusClass[l.status]}">${statusLabel[l.status]}</span></td>
+      <td>${statusAksi[l.status]}</td>
+    </tr>`).join('');
+}
+
+function renderAdminAktivitas(){
+  const el=document.getElementById('adm-aktivitas-list');
+  if(!el) return;
+  // Build from real data: last 5 entries
+  const acts=[];
+  laporanData.slice(0,6).forEach(l=>{
+    const dot = l.status==='baru'?'red':l.status==='selesai'?'green':l.status==='diproses'?'yellow':'red';
+    const title = l.status==='baru'?`Laporan baru: ${l.pc}`:l.status==='selesai'?`${l.pc} selesai ditangani`:l.status==='diproses'?`${l.pc} sedang diproses`:`Laporan ${l.pc} diperbarui`;
+    const waktu = l.waktu.split('·')[1]?.trim()||l.waktu;
+    acts.push({dot,title,meta:`${l.kategori} · ${l.pelapor}`,time:waktu});
+  });
+  el.innerHTML=acts.map(a=>`
+    <div class="act-item">
+      <div class="act-dot ${a.dot}"></div>
+      <div class="act-body"><div class="act-title">${a.title}</div><div class="act-meta">${a.meta}</div></div>
+      <div class="act-time">${a.time}</div>
+    </div>`).join('');
+}
+
+function setEl(id,val){
+  const el=document.getElementById(id);
+  if(el) el.textContent=val;
+}
+
+// ── RENDER INBOX ──
+function renderInbox(filter,search){
+  const tb=document.getElementById('inboxTableBody');
+  if(!tb) return;
+  filter=filter||currentInboxFilter;
+  currentInboxFilter=filter;
+  search=(search||'').toLowerCase();
+  const katFilter=currentInboxKatFilter;
+  let data=laporanData;
+  if(filter==='diproses') data=data.filter(l=>l.status==='diproses');
+  else if(filter==='selesai') data=data.filter(l=>l.status==='selesai');
+  else if(filter==='baru') data=data.filter(l=>l.status==='baru');
+  if(katFilter) data=data.filter(l=>l.kategori===katFilter);
+  if(search) data=data.filter(l=>(l.id+l.pc+l.pelapor+l.kategori+l.deskripsi).toLowerCase().includes(search));
+  if(data.length===0){ tb.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:32px;color:var(--txt3);">Tidak ada laporan ditemukan.</td></tr>`; return; }
+  tb.innerHTML=data.map(l=>`
+    <tr onclick="openLapDetail('${l.id}')">
+      <td style="font-size:11px;font-weight:600;color:var(--blue);">${l.id}</td>
+      <td><span class="tbl-name">${l.pc}</span></td>
+      <td style="font-size:11px;color:var(--txt2);">${l.pelapor}</td>
+      <td><span class="badge ${l.kat_badge}">${l.kategori}</span></td>
+      <td><span class="badge ${statusClass[l.status]}">${statusLabel[l.status]}</span></td>
+      <td style="font-size:11px;color:var(--txt2);">${l.waktu.split('·')[0].trim()}</td>
+      <td>${statusAksi[l.status]}</td>
+    </tr>`).join('');
+  updateInboxCards();
+  updateInboxCounts();
+}
+
+function filterInboxKat(kat){
+  currentInboxKatFilter=kat;
+  const search=document.getElementById('inboxSearch')?.value||'';
+  renderInbox(currentInboxFilter,search);
+}
+
+function updateInboxCards(){
+  const lc=getLaporCounts();
+  setEl('inbox-card-baru', lc.baru);
+  setEl('inbox-card-diproses', lc.diproses);
+  setEl('inbox-card-selesai', lc.selesai);
+}
+
+function updateInboxCounts(){
+  const lc=getLaporCounts();
+  const pills=document.querySelectorAll('#adm-page-inbox .filter-tab .count-pill');
+  if(pills[0]) pills[0].textContent=lc.total;
+  if(pills[1]) pills[1].textContent=lc.diproses;
+  if(pills[2]) pills[2].textContent=lc.selesai;
+  const badge=document.getElementById('inboxBadge');
+  if(badge){ badge.textContent=lc.baru; badge.style.display=lc.baru>0?'':'none'; }
+  const notif=document.getElementById('topbarNotif');
+  if(notif){ notif.textContent=`${lc.baru} Laporan Baru`; notif.style.display=lc.baru>0?'':'none'; }
+}
+
+function filterInbox(btn,filter){
+  document.querySelectorAll('#adm-page-inbox .filter-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const search=document.getElementById('inboxSearch')?.value||'';
+  renderInbox(filter,search);
+}
+
+// ── RENDER ASET ──
+function renderAset(filter,search){
+  const tb=document.getElementById('asetTableBody');
+  if(!tb) return;
+  filter=filter||currentAsetFilter;
+  currentAsetFilter=filter;
+  search=(search||'').toLowerCase();
+  let data=asetData;
+  if(filter!=='semua'){
+    const labMatch=labsData.find(l=>l.id===filter);
+    if(labMatch) data=data.filter(a=>a.lab===labMatch.nama);
+  }
+  if(search) data=data.filter(a=>a.name.toLowerCase().includes(search)||a.lab.toLowerCase().includes(search));
+  if(data.length===0){ tb.innerHTML=`<tr><td colspan="8" style="text-align:center;padding:32px;color:var(--txt3);">Tidak ada aset ditemukan.</td></tr>`; return; }
+  tb.innerHTML=data.map(a=>`
+    <tr onclick="openAsetDetail('${a.name}')">
+      <td><div class="tbl-name">${a.name}</div><div class="tbl-sub">${a.lab} — ${a.row}</div></td>
+      <td style="font-size:11px;color:var(--txt2);">${a.lab}</td>
+      <td><div style="font-size:11px;">${a.cpu}</div><div style="font-size:10px;color:var(--txt3);">${a.ram} · ${a.storage} · ${a.os}</div></td>
+      <td style="font-size:11px;color:var(--txt2);font-family:monospace;">${a.ip}</td>
+      <td style="font-size:11px;color:var(--txt2);">${a.tahun}</td>
+      <td><span class="badge ${statusBadge[a.status]}">${statusTxt[a.status]}</span></td>
+      <td style="font-size:11px;color:var(--txt2);">${a.svc}</td>
+      <td style="display:flex;gap:4px;" onclick="event.stopPropagation()">
+        <button class="btn btn-ghost btn-sm" style="font-size:10px;" onclick="openAsetDetail('${a.name}')">Detail</button>
+        <button class="btn btn-warn btn-sm" style="font-size:10px;" onclick="openEditAset('${a.name}')">Edit</button>
+        <button class="btn btn-danger btn-sm" style="font-size:10px;" onclick="konfirmasiHapusAset('${a.name}')">Hapus</button>
+      </td>
+    </tr>`).join('');
+  updateAsetCards();
+}
+
+function updateAsetCards(){
+  const ac=getAsetCounts();
+  setEl('aset-card-total', ac.total);
+  setEl('aset-card-normal', ac.normal);
+  setEl('aset-card-perlu', ac.perlu);
+  setEl('aset-card-rusak', ac.rusak);
+  // filter pills
+  const pills=document.querySelectorAll('#adm-page-aset .filter-tab .count-pill');
+  if(pills[0]) pills[0].textContent=ac.total;
+  if(pills[1]) pills[1].textContent=asetData.filter(a=>a.lab==='Lab A').length;
+  if(pills[2]) pills[2].textContent=asetData.filter(a=>a.lab==='Lab B').length;
+}
+
+function filterAset(btn,filter){
+  document.querySelectorAll('#adm-page-aset .filter-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  const search=document.getElementById('asetSearch')?.value||'';
+  renderAset(filter,search);
+}
+
+function konfirmasiHapusAset(name){
+  showConfirm(`Hapus aset ${name}?`,'Aset akan dihapus permanen. Tindakan ini tidak bisa dibatalkan.','🗑️ Ya, Hapus','btn-danger',()=>{
+    asetData=asetData.filter(a=>a.name!==name);
+    // Sinkronisasi ke pcData untuk dashboard asisten
+    syncAsetToPcData();
+    fbSaveAset(); fbSavePcData();
+    closePanels();
+    renderAset();
+    showToast('success','🗑️',`Aset ${name} berhasil dihapus.`);
+  });
+}
+
+function openLapDetail(id){
+  const l=laporanData.find(x=>x.id===id);
+  if(!l) return;
+  currentLapIdx=laporanData.indexOf(l);
+  document.getElementById('dpLapTitle').textContent=`Detail Laporan — ${l.pc}`;
+  document.getElementById('dpLapStatus').className=`badge ${statusClass[l.status]}`;
+  document.getElementById('dpLapStatus').textContent=statusLabel[l.status];
+  document.getElementById('dpLapStatusLabel').textContent=l.status==='baru'?'Belum Ditangani':l.status==='diproses'?'Sedang Diproses':l.status==='selesai'?'Selesai Ditangani':'Ditolak';
+  document.getElementById('dpLapPc').textContent=l.pc;
+  document.getElementById('dpLapKat').textContent=l.kategori;
+  document.getElementById('dpLapOleh').textContent=l.pelapor;
+  document.getElementById('dpLapWaktu').textContent=l.waktu;
+  document.getElementById('dpLapDesc').textContent=l.deskripsi;
+  // Foto
+  const fotoSec=document.getElementById('dpFotoSection');
+  const fotoImg=document.getElementById('dpFotoImg');
+  if(l.foto){ fotoSec.style.display='block'; fotoImg.src=l.foto; }
+  else { fotoSec.style.display='none'; fotoImg.src=''; }
+  document.getElementById('dpLapTimeline').innerHTML=`
+    <div class="tl-item"><div class="tl-dot fill"></div><div><div class="tl-title">Laporan masuk</div><div class="tl-sub">${l.waktu}</div></div></div>
+    <div class="tl-item"><div class="tl-dot ${l.status==='diproses'||l.status==='selesai'?'fill':'empty'}"></div><div><div class="tl-title" style="color:${l.status!=='baru'?'var(--txt)':'var(--txt3)'}">Ditangani teknisi</div><div class="tl-sub">${l.status==='baru'?'— belum —':'Sedang diproses'}</div></div></div>
+    <div class="tl-item"><div class="tl-dot ${l.status==='selesai'?'green':'empty'}"></div><div><div class="tl-title" style="color:${l.status==='selesai'?'var(--green)':'var(--txt3)'}">Perbaikan selesai</div><div class="tl-sub">${l.status==='selesai'?'Selesai':'— belum —'}</div></div></div>`;
+  const btnD=document.getElementById('btnDiproses');
+  const btnS=document.getElementById('btnSelesai');
+  const btnT=document.getElementById('btnTolak');
+  btnD.disabled=l.status==='diproses'||l.status==='selesai'||l.status==='tolak';
+  btnS.disabled=l.status==='selesai'||l.status==='tolak';
+  btnT.disabled=l.status==='tolak'||l.status==='selesai';
+  btnD.style.opacity=btnD.disabled?'.45':'1';
+  btnS.style.opacity=btnS.disabled?'.45':'1';
+  btnT.style.opacity=btnT.disabled?'.45':'1';
+  document.getElementById('lapDetailPanel').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
+}
+
+function openAsetDetail(name){
+  const a=asetData.find(x=>x.name===name);
+  if(!a) return;
+  document.getElementById('dpAsetTitle').textContent=`Detail Aset — ${a.name}`;
+  document.getElementById('dpAsetBody').innerHTML=`
+    <div class="dp-section">
+      <div class="dp-section-title">Status &amp; Lokasi</div>
+      <div class="dp-row"><span class="dp-key">Status</span><span class="dp-val"><span class="badge ${statusBadge[a.status]}">${statusTxt[a.status]}</span></span></div>
+      <div class="dp-row"><span class="dp-key">Lokasi</span><span class="dp-val">${a.lab} — ${a.row}</span></div>
+
+      <div class="dp-row"><span class="dp-key">IP Address</span><span class="dp-val" style="font-family:monospace;">${a.ip}</span></div>
+      <div class="dp-row"><span class="dp-key">Tahun Pengadaan</span><span class="dp-val">${a.tahun}</span></div>
+      <div class="dp-row"><span class="dp-key">Terakhir Service</span><span class="dp-val">${a.svc}</span></div>
+    </div>
+    <div class="dp-section">
+      <div class="dp-section-title">Spesifikasi</div>
+      <div class="spec-grid">
+        <div class="spec-item"><div class="spec-label">CPU</div><div class="spec-val">${a.cpu}</div></div>
+        <div class="spec-item"><div class="spec-label">RAM</div><div class="spec-val">${a.ram}</div></div>
+        <div class="spec-item"><div class="spec-label">Storage</div><div class="spec-val">${a.storage}</div></div>
+        <div class="spec-item"><div class="spec-label">OS</div><div class="spec-val">${a.os}</div></div>
+      </div>
+    </div>
+    <div class="dp-section">
+      <div class="dp-section-title">Aksi</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        <button class="btn btn-warn btn-full" onclick="closePanels();openEditAset('${a.name}')">✏️ Edit Aset</button>
+        <button class="btn btn-danger btn-full" onclick="konfirmasiHapusAset('${a.name}')">🗑️ Hapus Aset</button>
+      </div>
+    </div>`;
+  document.getElementById('asetDetailPanel').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
+}
+
+function updateStatus(newStatus){
+  if(currentLapIdx===null) return;
+  const l=laporanData[currentLapIdx];
+  const oldStatus=l.status;
+  if(newStatus==='tolak'){
+    showConfirm('Tolak laporan ini?','Laporan akan ditandai sebagai ditolak.','Ya, Tolak','btn-danger',()=>{
+      l.status='tolak';
+      fbSaveLaporan();
+      closePanels();
+      renderInbox(currentInboxFilter);
+      updateAdminOverview();
+      showToast('error','✕',`Laporan ${l.id} ditolak.`);
+      currentLapIdx=null;
+    });
+    return;
+  }
+  if(newStatus===oldStatus){ showToast('warning','ℹ️','Status sudah sama.'); return; }
+  l.status=newStatus;
+  fbSaveLaporan();
+  document.getElementById('lapDetailPanel').classList.remove('open');
+  document.getElementById('overlay').classList.remove('open');
+  setTimeout(()=>{ openLapDetail(l.id); },100);
+  renderInbox(currentInboxFilter);
+  updateAdminOverview();
+  // update sidebar badge
+  updateInboxCounts();
+  showToast('success','✅',`Status laporan diperbarui menjadi "${statusLabel[newStatus]}"`);
+}
+
+function openModal(){ 
+  document.getElementById('asetModal').classList.add('open');
+  document.getElementById('asetModalErr').style.display='none';
+  ['newPcNama','newPcCpu','newPcStorage','newPcIp','newPcTahun'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('newPcNote').value='';
+  const labSel=document.getElementById('newPcLab');
+  if(labSel) labSel.innerHTML=labsData.map(l=>`<option value="${l.nama}">${l.nama} — ${l.lantai}</option>`).join('');
+}
+function closeModal(){ document.getElementById('asetModal').classList.remove('open'); }
+
+function openEditAset(name){
+  const a=asetData.find(x=>x.name===name);
+  if(!a) return;
+  document.getElementById('editAsetTitle').textContent=`Edit Aset — ${a.name}`;
+  document.getElementById('editPcOrigNama').value=a.name;
+  document.getElementById('editPcNama').value=a.name;
+  const labSelE=document.getElementById('editPcLab');
+  if(labSelE){ labSelE.innerHTML=labsData.map(l=>`<option value="${l.nama}">${l.nama} — ${l.lantai}</option>`).join(''); labSelE.value=a.lab; }
+  document.getElementById('editPcCpu').value=a.cpu==='—'?'':a.cpu;
+  document.getElementById('editPcRam').value=a.ram;
+  document.getElementById('editPcStorage').value=a.storage==='—'?'':a.storage;
+  document.getElementById('editPcOs').value=a.os;
+  document.getElementById('editPcIp').value=a.ip==='—'?'':a.ip;
+  document.getElementById('editPcTahun').value=a.tahun;
+  document.getElementById('editPcStatus').value=a.status;
+  document.getElementById('editPcSvc').value=a.svc==='—'?'':a.svc;
+  document.getElementById('editPcNote').value=a.note||'';
+  document.getElementById('editAsetErr').style.display='none';
+  document.getElementById('editAsetModal').classList.add('open');
+}
+function closeEditModal(){ document.getElementById('editAsetModal').classList.remove('open'); }
+
+function submitEditAset(){
+  const nama=document.getElementById('editPcNama').value.trim();
+  if(!nama){ document.getElementById('editAsetErr').style.display='block'; return; }
+  document.getElementById('editAsetErr').style.display='none';
+  const origNama=document.getElementById('editPcOrigNama').value;
+  const idx=asetData.findIndex(x=>x.name===origNama);
+  if(idx===-1) return;
+  const lab=document.getElementById('editPcLab').value;
+  const labInfoEdit=labsData.find(l=>l.nama===lab);
+  const lantai=labInfoEdit?labInfoEdit.lantai:lab;
+  asetData[idx]={
+    ...asetData[idx],
+    name:nama, lab,
+    row:lantai,
+    cpu:document.getElementById('editPcCpu').value.trim()||'—',
+    ram:document.getElementById('editPcRam').value,
+    storage:document.getElementById('editPcStorage').value.trim()||'—',
+    os:document.getElementById('editPcOs').value,
+    ip:document.getElementById('editPcIp').value.trim()||'—',
+    tahun:document.getElementById('editPcTahun').value.trim()||new Date().getFullYear().toString(),
+    status:document.getElementById('editPcStatus').value,
+    svc:document.getElementById('editPcSvc').value.trim()||'—',
+    note:document.getElementById('editPcNote').value.trim(),
+  };
+  closeEditModal();
+  // Sinkronisasi ke pcData untuk dashboard asisten
+  syncAsetToPcData();
+  fbSaveAset(); fbSavePcData();
+  renderAset(currentAsetFilter);
+  updateAsetCards();
+  updateAdminOverview();
+  showToast('success','✅',`Aset ${nama} berhasil diperbarui!`);
+}
+
+function submitAset(){
+  const nama=document.getElementById('newPcNama').value.trim();
+  if(!nama){ document.getElementById('asetModalErr').style.display='block'; return; }
+  document.getElementById('asetModalErr').style.display='none';
+  const lab=document.getElementById('newPcLab').value;
+  const cpu=document.getElementById('newPcCpu').value.trim()||'—';
+  const ram=document.getElementById('newPcRam').value;
+  const storage=document.getElementById('newPcStorage').value.trim()||'—';
+  const os=document.getElementById('newPcOs').value;
+  const ip=document.getElementById('newPcIp').value.trim()||'—';
+  const tahun=document.getElementById('newPcTahun').value.trim()||new Date().getFullYear().toString();
+  const labInfoNew=labsData.find(l=>l.nama===lab);
+  const rowVal=labInfoNew?labInfoNew.lantai:lab;
+  asetData.unshift({name:nama,lab,row:rowVal,cpu,ram,storage,os,ip,tahun,status:'normal',svc:'—'});
+  // Sinkronisasi ke pcData untuk dashboard asisten
+  syncAsetToPcData();
+  fbSaveAset(); fbSavePcData();
+  closeModal();
+  renderAset(currentAsetFilter);
+  updateAsetCards();
+  updateAdminOverview();
+  showToast('success','✅',`Aset ${nama} berhasil ditambahkan!`);
+}
+
+// ── ADMIN PAGES HTML ──
+function adminPagesHTML(){
+  const lc=getLaporCounts();
+  const ac=getAsetCounts();
+  const labA=asetData.filter(a=>a.lab==='Lab A');
+  const labB=asetData.filter(a=>a.lab==='Lab B');
+  const labAPct=labA.length?Math.round(labA.filter(a=>a.status==='normal').length/labA.length*100):0;
+  const labBPct=labB.length?Math.round(labB.filter(a=>a.status==='normal').length/labB.length*100):0;
+  return `
+<!-- OVERVIEW -->
+<div class="page active" id="adm-page-overview">
+  <nav class="breadcrumb"><span>Beranda</span></nav>
+  <div class="page-header"><div><div class="page-title">Overview Sistem</div><div class="page-sub">Lab A &amp; Lab B</div></div></div>
+  <div class="stat-row stat-row-4">
+    <div class="stat-card red"><div class="stat-icon">🆕</div><div class="stat-num red" id="adm-ov-baru">${lc.baru}</div><div class="stat-lbl">Laporan Baru</div></div>
+    <div class="stat-card yellow"><div class="stat-icon">🔧</div><div class="stat-num yellow" id="adm-ov-diproses">${lc.diproses}</div><div class="stat-lbl">Sedang Diproses</div></div>
+    <div class="stat-card green"><div class="stat-icon">✅</div><div class="stat-num green" id="adm-ov-selesai">${lc.selesai}</div><div class="stat-lbl">Selesai</div></div>
+    <div class="stat-card blue"><div class="stat-icon">🖥️</div><div class="stat-num blue" id="adm-ov-aset">${ac.total}</div><div class="stat-lbl">Total Aset</div></div>
+  </div>
+  <div class="grid-3-1">
+    <div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Laporan Terbaru</span><button class="btn btn-ghost btn-sm" onclick="adminNav('inbox',document.querySelectorAll('#sidebarEl .sb-item')[1])">Inbox →</button></div>
+        <div class="card-body"><table class="tbl"><thead><tr><th>PC</th><th>Pelapor</th><th>Kategori</th><th>Status</th><th>Aksi</th></tr></thead>
+        <tbody id="adm-recent-tbody"></tbody></table></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Kondisi Aset Lab</span><button class="btn btn-ghost btn-sm" onclick="adminNav('aset',document.querySelectorAll('#sidebarEl .sb-item')[2])">Kelola →</button></div>
+        <div class="card-body-pad">
+          <div style="display:flex;flex-direction:column;gap:12px;">
+            <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;"><span id="adm-laba-unit" style="color:var(--txt2);">Lab A (${labA.length} unit)</span><span id="adm-laba-pct" style="font-weight:600;color:var(--green);">${labAPct}% Normal</span></div><div class="prog-bar"><div class="prog-fill" id="adm-laba-bar" style="width:${labAPct}%;background:var(--green);"></div></div></div>
+            <div><div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;"><span id="adm-labb-unit" style="color:var(--txt2);">Lab B (${labB.length} unit)</span><span id="adm-labb-pct" style="font-weight:600;color:var(--yellow);">${labBPct}% Normal</span></div><div class="prog-bar"><div class="prog-fill" id="adm-labb-bar" style="width:${labBPct}%;background:var(--yellow);"></div></div></div>
+            <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;">
+              <div style="text-align:center;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px;"><div id="adm-cond-normal" style="font-size:18px;font-weight:700;color:var(--green);">${ac.normal}</div><div style="font-size:10px;color:var(--txt2);">Normal</div></div>
+              <div style="text-align:center;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px;"><div id="adm-cond-perlu" style="font-size:18px;font-weight:700;color:var(--yellow);">${ac.perlu}</div><div style="font-size:10px;color:var(--txt2);">Perlu Cek</div></div>
+              <div style="text-align:center;background:var(--bg-input);border:1px solid var(--border);border-radius:var(--r-sm);padding:10px;"><div id="adm-cond-rusak" style="font-size:18px;font-weight:700;color:var(--red);">${ac.rusak}</div><div style="font-size:10px;color:var(--txt2);">Rusak</div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Aktivitas Terbaru</span></div>
+        <div class="activity-list" id="adm-aktivitas-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- INBOX -->
+<div class="page" id="adm-page-inbox">
+  <nav class="breadcrumb"><a onclick="adminNav('overview',document.querySelectorAll('#sidebarEl .sb-item')[0])">Beranda</a><span class="breadcrumb-sep">›</span><span>Inbox Laporan</span></nav>
+  <div class="page-header"><div><div class="page-title">Inbox Laporan Kerusakan</div><div class="page-sub">Semua laporan masuk dari asisten lab</div></div></div>
+  <div class="stat-row stat-row-3">
+    <div class="stat-card red"><div class="stat-icon">🆕</div><div class="stat-num red" id="inbox-card-baru">${lc.baru}</div><div class="stat-lbl">Baru</div></div>
+    <div class="stat-card yellow"><div class="stat-icon">🔧</div><div class="stat-num yellow" id="inbox-card-diproses">${lc.diproses}</div><div class="stat-lbl">Diproses</div></div>
+    <div class="stat-card green"><div class="stat-icon">✅</div><div class="stat-num green" id="inbox-card-selesai">${lc.selesai}</div><div class="stat-lbl">Selesai</div></div>
+  </div>
+  <div class="filter-bar">
+    <button class="filter-tab active" onclick="filterInbox(this,'semua')">Semua <span class="count-pill">${lc.total}</span></button>
+    <button class="filter-tab" onclick="filterInbox(this,'diproses')">Diproses <span class="count-pill">${lc.diproses}</span></button>
+    <button class="filter-tab" onclick="filterInbox(this,'selesai')">Selesai <span class="count-pill">${lc.selesai}</span></button>
+    <select class="mselect" id="inboxKatFilter" onchange="filterInboxKat(this.value)" style="height:32px;width:auto;font-size:12px;padding:4px 28px 4px 10px;border-radius:20px;background-color:var(--bg-card);min-width:140px;">
+      <option value="">Semua Kategori</option>
+      <option value="Hardware">Hardware</option>
+      <option value="Software">Software</option>
+      <option value="Jaringan">Jaringan</option>
+    </select>
+    <input class="search-input" id="inboxSearch" type="text" placeholder="🔍 Cari laporan..." oninput="renderInbox(currentInboxFilter,this.value)">
+  </div>
+  <div class="card"><div class="card-body"><table class="tbl"><thead><tr><th>No. Laporan</th><th>PC</th><th>Pelapor</th><th>Kategori</th><th>Status</th><th>Tanggal</th><th>Aksi</th></tr></thead><tbody id="inboxTableBody"></tbody></table></div></div>
+</div>
+
+<!-- KELOLA ASET -->
+<div class="page" id="adm-page-aset">
+  <nav class="breadcrumb"><a onclick="adminNav('overview',document.querySelectorAll('#sidebarEl .sb-item')[0])">Beranda</a><span class="breadcrumb-sep">›</span><span>Kelola Aset</span></nav>
+  <div class="page-header"><div><div class="page-title">Kelola Aset</div><div class="page-sub">Unit terdaftar di Lab A &amp; Lab B</div></div><button class="btn btn-primary btn-sm" onclick="openModal()">+ Tambah Aset</button></div>
+  <div class="stat-row stat-row-4">
+    <div class="stat-card blue"><div class="stat-icon">🖥️</div><div class="stat-num blue" id="aset-card-total">${ac.total}</div><div class="stat-lbl">Total Aset</div></div>
+    <div class="stat-card green"><div class="stat-icon">✅</div><div class="stat-num green" id="aset-card-normal">${ac.normal}</div><div class="stat-lbl">Aktif &amp; Normal</div></div>
+    <div class="stat-card yellow"><div class="stat-icon">🔧</div><div class="stat-num yellow" id="aset-card-perlu">${ac.perlu}</div><div class="stat-lbl">Perlu Perhatian</div></div>
+    <div class="stat-card red"><div class="stat-icon">⚠️</div><div class="stat-num red" id="aset-card-rusak">${ac.rusak}</div><div class="stat-lbl">Rusak / Offline</div></div>
+  </div>
+  <div class="filter-bar" id="asetFilterBar">
+    <button class="filter-tab active" onclick="filterAset(this,'semua')">Semua <span class="count-pill">${ac.total}</span></button>
+    ${labsData.map(l=>`<button class="filter-tab" onclick="filterAset(this,'${l.id}')">${l.nama} <span class="count-pill">${asetData.filter(a=>a.lab===l.nama).length}</span></button>`).join('')}
+    <input class="search-input" id="asetSearch" type="text" placeholder="🔍 Cari nama aset..." oninput="renderAset(currentAsetFilter,this.value)">
+  </div>
+  <div class="card"><div class="card-body"><table class="tbl"><thead><tr><th>Nama PC</th><th>Lokasi</th><th>Spesifikasi</th><th>IP</th><th>Tahun</th><th>Status</th><th>Terakhir Service</th><th>Aksi</th></tr></thead><tbody id="asetTableBody"></tbody></table></div></div>
+</div>
+
+<!-- KELOLA PENGGUNA -->
+<div class="page" id="adm-page-pengguna">
+  <nav class="breadcrumb"><a onclick="adminNav('overview',document.querySelector('#sidebarEl .sb-item'))">Beranda</a><span class="breadcrumb-sep">›</span><span>Kelola Pengguna</span></nav>
+  <div class="page-header"><div><div class="page-title">Kelola Pengguna</div><div class="page-sub">Akun asisten yang bisa login ke sistem</div></div><button class="btn btn-primary btn-sm" onclick="openAddUserModal()">+ Tambah Pengguna</button></div>
+  <div class="card"><div class="card-body"><table class="tbl"><thead><tr><th>ID Pengguna</th><th>Nama</th><th>Role</th><th>Lab yang Ditugaskan</th><th>Aksi</th></tr></thead><tbody id="penggunaTableBody"></tbody></table></div></div>
+</div>
+
+<!-- KELOLA LAB -->
+<div class="page" id="adm-page-lab">
+  <nav class="breadcrumb"><a onclick="adminNav('overview',document.querySelector('#sidebarEl .sb-item'))">Beranda</a><span class="breadcrumb-sep">›</span><span>Kelola Lab</span></nav>
+  <div class="page-header"><div><div class="page-title">Kelola Lab</div><div class="page-sub">Daftar ruangan lab yang terdaftar di sistem</div></div><button class="btn btn-primary btn-sm" onclick="openAddLabModal()">+ Tambah Lab</button></div>
+  <div class="card"><div class="card-body"><table class="tbl"><thead><tr><th>ID</th><th>Nama Lab</th><th>Lantai / Lokasi</th><th>Jumlah Aset</th><th>Aksi</th></tr></thead><tbody id="labTableBody"></tbody></table></div></div>
+</div>`;
+}
+
+// ═══════════════════════════════════════
+// ════ ASISTEN ════
+// ═══════════════════════════════════════
+function initAsisten(){
+  document.getElementById('sidebarEl').innerHTML=`
+    <div class="sb-logo">
+      <span style="font-size:20px;">🖥️</span>
+      <span class="sb-logo-text">MonitorLab</span>
+      <span class="sb-badge-asisten">Asisten</span>
+    </div>
+    <div class="sb-section">
+      <div class="sb-section-label">Menu</div>
+      <div class="sb-item active" onclick="asNav('dashboard',this)"><span class="sb-item-icon">📊</span> Dashboard</div>
+      <div class="sb-item" onclick="asNav('status-pc',this)"><span class="sb-item-icon">🖥️</span> Status PC</div>
+      <div class="sb-item" onclick="asNav('laporan',this)"><span class="sb-item-icon">⚠️</span> Laporan Rusak<span class="sb-item-badge" id="asBadgeBaru">0</span></div>
+      <div class="sb-item" onclick="asNav('riwayat',this)"><span class="sb-item-icon">📋</span> Riwayat</div>
+    </div>
+    <div class="sb-bottom">
+      <div class="user-row">
+        <div class="user-avatar asisten">${currentUser.inisial}</div>
+        <div><div class="user-name">${currentUser.nama}</div><div class="user-role">Asisten · ${currentUser.labLabel||'—'}</div></div>
+      </div>
+      <button class="sb-logout" onclick="doLogout()">↩ Keluar</button>
+    </div>`;
+  document.getElementById('topbarEl').innerHTML=`
+    <span class="topbar-title" id="topbarTitle">Dashboard</span>
+    <button class="btn btn-primary btn-sm" style="margin-left:auto;" onclick="openLapor()">+ Lapor Kerusakan</button>`;
+  document.getElementById('contentEl').innerHTML=asistenPagesHTML();
+  renderPCGrid();
+  renderPCTable();
+  renderAsLaporan();
+  renderRiwayat();
+  updateAsDashboard();
+  asNav('dashboard',document.querySelector('#sidebarEl .sb-item'));
+  const pcSearch=document.getElementById('pcSearch');
+  if(pcSearch) pcSearch.addEventListener('input',function(){ filterPCSearch(this.value); });
+  updateAsSidebarBadge();
+}
+
+function asNav(pageId,el){
+  document.querySelectorAll('#contentEl .page').forEach(p=>p.classList.remove('active'));
+  const pg=document.getElementById('as-page-'+pageId);
+  if(pg) pg.classList.add('active');
+  document.querySelectorAll('#sidebarEl .sb-item').forEach(i=>i.classList.remove('active'));
+  if(el) el.classList.add('active');
+  const titles={dashboard:'Dashboard','status-pc':'Status PC',laporan:'Laporan Rusak',riwayat:'Riwayat Laporan'};
+  document.getElementById('topbarTitle').textContent=titles[pageId]||pageId;
+  closePanels();
+  document.getElementById('contentEl').scrollTop=0;
+  if(pageId==='dashboard') updateAsDashboard();
+  if(pageId==='laporan') { renderAsLaporan(); updateAsLaporCards(); }
+  if(pageId==='riwayat') renderRiwayat();
+}
+
+function updateAsDashboard(){
+  const pc=getPcCounts();
+  setEl('as-dash-normal', pc.normal);
+  setEl('as-dash-perlu', pc.perlu);
+  setEl('as-dash-rusak', pc.rusak);
+  setEl('as-dash-total', pc.total);
+  renderAsDashboardStatus();
+  renderAsDashboardLaporanAktif();
+  renderAsDashboardAktivitas();
+}
+
+function renderAsDashboardStatus(){
+  const tb=document.getElementById('as-dash-status-tbody');
+  if(!tb) return;
+  const highlight=pcData.filter(p=>p.status!=='normal').slice(0,5);
+  const all=highlight.length>0?highlight:pcData.slice(0,5);
+  tb.innerHTML=all.map(p=>`
+    <tr onclick="openPCDetail('${p.name}','${p.status}')">
+      <td><div class="tbl-name">${p.name}</div><div class="tbl-sub">${p.row}</div></td>
+      <td><span class="badge ${pcStatusBadge[p.status]}">${pcStatusLabel[p.status]}</span></td>
+      <td style="font-size:11px;color:var(--txt2);">${p.cek}</td>
+      <td><a class="link-act">Detail</a></td>
+    </tr>`).join('');
+}
+
+function renderAsDashboardLaporanAktif(){
+  const tb=document.getElementById('as-dash-laporan-tbody');
+  if(!tb) return;
+  const mine=laporanData.filter(l=>l.pelapor===currentUser.nama&&(l.status==='baru'||l.status==='diproses')).slice(0,5);
+  if(mine.length===0){ tb.innerHTML=`<tr><td colspan="3" style="text-align:center;padding:20px;color:var(--txt3);">Tidak ada laporan aktif.</td></tr>`; return; }
+  tb.innerHTML=mine.map(l=>`
+    <tr>
+      <td><span class="tbl-name">${l.pc}</span></td>
+      <td style="font-size:11px;color:var(--txt2);">${l.deskripsi.substring(0,40)}${l.deskripsi.length>40?'...':''}</td>
+      <td><span class="badge ${statusClass[l.status]}">${statusLabel[l.status]}</span></td>
+    </tr>`).join('');
+}
+
+function renderAsDashboardAktivitas(){
+  const el=document.getElementById('as-dash-aktivitas-list');
+  if(!el) return;
+  const mine=laporanData.filter(l=>l.pelapor===currentUser.nama).slice(0,5);
+  if(mine.length===0){ el.innerHTML=`<div style="padding:20px;text-align:center;font-size:12px;color:var(--txt3);">Belum ada aktivitas.</div>`; return; }
+  el.innerHTML=mine.map(l=>{
+    const dot=l.status==='baru'?'red':l.status==='selesai'?'green':l.status==='diproses'?'yellow':'red';
+    const title=l.status==='baru'?`Laporan baru: ${l.pc}`:l.status==='selesai'?`${l.pc} selesai diperbaiki`:l.status==='diproses'?`${l.pc} sedang diproses`:`Laporan ${l.pc}`;
+    const waktu=l.waktu.split('·')[1]?.trim()||l.waktu;
+    return `<div class="act-item">
+      <div class="act-dot ${dot}"></div>
+      <div class="act-body"><div class="act-title">${title}</div><div class="act-meta">${l.kategori} · ${l.deskripsi.substring(0,35)}${l.deskripsi.length>35?'...':''}</div></div>
+      <div class="act-time">${waktu}</div>
+    </div>`;
+  }).join('');
+}
+
+function updateAsSidebarBadge(){
+  const lc=getAsLaporCounts();
+  const badge=document.getElementById('asBadgeBaru');
+  if(badge){ badge.textContent=lc.baru; badge.style.display=lc.baru>0?'':'none'; }
+}
+
+function updateAsLaporCards(){
+  const lc=getAsLaporCounts();
+  setEl('as-laporan-card-baru', lc.baru);
+  setEl('as-laporan-card-diproses', lc.diproses);
+}
+
+function renderAsLaporan(filter,search){
+  const tb=document.getElementById('asLaporTableBody');
+  if(!tb) return;
+  filter=filter||currentAsLaporFilter;
+  currentAsLaporFilter=filter;
+  search=(search!==undefined?search:(document.getElementById('asLaporSearch')?.value||'')).toLowerCase();
+  let data=laporanData.filter(l=>l.pelapor===currentUser.nama);
+  if(filter==='diproses') data=data.filter(r=>r.status==='diproses');
+  else if(filter==='selesai') data=data.filter(r=>r.status==='selesai');
+  else if(filter==='baru') data=data.filter(r=>r.status==='baru');
+  if(search) data=data.filter(r=>(r.id+r.pc+r.kategori+r.deskripsi).toLowerCase().includes(search));
+  if(data.length===0){ tb.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:32px;color:var(--txt3);">Tidak ada laporan ditemukan.</td></tr>`; return; }
+  tb.innerHTML=data.map(r=>`
+    <tr>
+      <td style="font-size:11px;font-weight:600;color:var(--blue);">${r.id}</td>
+      <td><span class="tbl-name">${r.pc}</span></td>
+      <td><span class="badge ${r.kat_badge}">${r.kategori}</span></td>
+      <td style="font-size:11px;color:var(--txt2);">${r.deskripsi.substring(0,50)}${r.deskripsi.length>50?'...':''}</td>
+      <td><span class="badge ${statusClass[r.status]}">${statusLabel[r.status]}</span></td>
+      <td style="font-size:11px;color:var(--txt2);">${r.waktu}</td>
+    </tr>`).join('');
+  updateAsLaporCards();
+  updateAsSidebarBadge();
+}
+
+function filterAsLaporan(btn,filter,search){
+  if(filter!==null&&filter!==undefined) currentAsLaporFilter=filter;
+  if(btn){ document.querySelectorAll('#as-page-laporan .filter-tab').forEach(b=>b.classList.remove('active')); btn.classList.add('active'); }
+  renderAsLaporan(currentAsLaporFilter, search);
+}
+
+function renderRiwayat(){
+  const tb=document.getElementById('riwayatTableBody');
+  if(!tb) return;
+  tb.innerHTML=laporanData.map(l=>`
+    <tr>
+      <td style="font-size:11px;font-weight:600;color:var(--blue);">${l.id}</td>
+      <td><span class="tbl-name">${l.pc}</span></td>
+      <td><span class="badge ${l.kat_badge}" style="font-size:9px;">${l.kategori}</span></td>
+      <td style="font-size:11px;color:var(--txt2);">${l.deskripsi.substring(0,40)}${l.deskripsi.length>40?'...':''}</td>
+      <td style="font-size:11px;">${l.pelapor}</td>
+      <td><span class="badge ${statusClass[l.status]}">${statusLabel[l.status]}</span></td>
+      <td style="font-size:11px;color:var(--txt2);">${l.waktu.split('·')[0].trim()}</td>
+      <td style="font-size:11px;color:var(--txt2);">${l.status==='selesai'?l.waktu.split('·')[0].trim():'—'}</td>
+    </tr>`).join('');
+}
+
+function renderPCGrid(filter,search){
+  const grid=document.getElementById('pcGrid');
+  if(!grid) return;
+  filter=filter||currentPcFilter;
+  search=(search||'').toLowerCase();
+  let data=filter==='all'?pcData:pcData.filter(p=>p.status===filter);
+  if(search) data=data.filter(p=>p.name.toLowerCase().includes(search));
+  if(data.length===0){ grid.innerHTML=`<div style="grid-column:1/-1;text-align:center;padding:40px;color:var(--txt3);">Tidak ada perangkat ditemukan.</div>`; return; }
+  grid.innerHTML=data.map(p=>`
+    <div class="pc-tile ${p.status}" onclick="openPCDetail('${p.name}','${p.status}')" role="button" tabindex="0">
+      <div class="pc-tile-name">${p.name}</div>
+      <span class="badge ${pcStatusBadge[p.status]}">${pcStatusLabel[p.status]}</span>
+      <div class="pc-tile-cek">Cek: ${p.cek}</div>
+    </div>`).join('');
+  updatePCFilterCounts();
+}
+
+function renderPCTable(filter,search){
+  const tb=document.getElementById('pcTableBody');
+  if(!tb) return;
+  filter=filter||currentPcFilter;
+  search=(search||'').toLowerCase();
+  let data=filter==='all'?pcData:pcData.filter(p=>p.status===filter);
+  if(search) data=data.filter(p=>p.name.toLowerCase().includes(search));
+  tb.innerHTML=data.map(p=>`
+    <tr onclick="openPCDetail('${p.name}','${p.status}')">
+      <td><span class="tbl-name">${p.name}</span></td>
+      <td style="font-size:11px;color:var(--txt2);">${p.row}</td>
+      <td><span class="badge ${pcStatusBadge[p.status]}">${pcStatusLabel[p.status]}</span></td>
+      <td style="font-size:11px;color:var(--txt2);font-family:monospace;">${p.ip}</td>
+      <td style="font-size:11px;color:var(--txt2);">${p.cek}</td>
+      <td><a class="link-act">Detail</a></td>
+    </tr>`).join('');
+}
+
+function updatePCFilterCounts(){
+  const pills=document.querySelectorAll('#as-page-status-pc .filter-tab .count-pill');
+  if(pills[0]) pills[0].textContent=pcData.length;
+  if(pills[1]) pills[1].textContent=pcData.filter(p=>p.status==='normal').length;
+  if(pills[2]) pills[2].textContent=pcData.filter(p=>p.status==='perlu').length;
+  if(pills[3]) pills[3].textContent=pcData.filter(p=>p.status==='rusak').length;
+  const sub=document.getElementById('pcPageSub');
+  if(sub) sub.textContent=`${pcData.length} perangkat terdaftar`;
+}
+
+function filterPC(btn,filter){
+  document.querySelectorAll('#as-page-status-pc .filter-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  currentPcFilter=filter;
+  const search=document.getElementById('pcSearch')?.value||'';
+  renderPCGrid(filter,search);
+  renderPCTable(filter,search);
+}
+function filterPCSearch(val){ renderPCGrid(currentPcFilter,val); renderPCTable(currentPcFilter,val); }
+
+function openPCDetail(name,status){
+  const pc=pcData.find(p=>p.name===name);
+  if(!pc) return;
+  document.getElementById('dpTitle').textContent=name;
+  document.getElementById('dpStatus').innerHTML=`<span class="badge ${pcStatusBadge[status]}">${pcStatusLabel[status]}</span>`;
+  const pcLab = pc.name.startsWith('PC-B') ? 'Lab B' : 'Lab A';
+  document.getElementById('dpLokasi').textContent=`${pcLab} — ${pc.row}`;
+  document.getElementById('dpCek').textContent=pc.cek;
+  document.getElementById('dpIp').textContent=pc.ip;
+  document.getElementById('dpCpu').textContent=pc.cpu;
+  document.getElementById('dpRam').textContent=pc.ram;
+  document.getElementById('dpStorage').textContent=pc.storage;
+  document.getElementById('dpOs').textContent=pc.os;
+  document.getElementById('dpNote').textContent=pc.note;
+  document.getElementById('detailPanel').classList.add('open');
+  document.getElementById('overlay').classList.add('open');
+}
+
+// ── FORM LAPORAN ──
+function openLapor(){
+  const modal=document.getElementById('laporModal');
+  modal.classList.add('open');
+  // fill from draft if exists
+  if(draftData){
+    const d=draftData;
+    document.getElementById('laporPc').value=d.pc||'';
+    document.getElementById('laporLab').value=d.lab||'Lab A';
+    document.getElementById('laporKat').value=d.kategori||'Hardware';
+    document.getElementById('laporDesc').value=d.deskripsi||'';
+    if(d.foto){ laporFotoDataURL=d.foto; showFotoPreview(d.foto,'draft foto'); }
+  } else {
+    document.getElementById('laporPc').value='';
+    document.getElementById('laporDesc').value='';
+    document.getElementById('laporErr').style.display='none';
+    clearFotoInternal();
+  }
+}
+function closeLapor(){ document.getElementById('laporModal').classList.remove('open'); }
+function forceCloseLapor(){ closeLapor(); draftData=null; clearFotoInternal(); }
+function confirmCloseLapor(){
+  const desc=document.getElementById('laporDesc');
+  if(desc&&desc.value.trim().length>0){
+    showConfirm('Batalkan laporan ini?','Data yang sudah kamu isi akan hilang. Kamu bisa simpan sebagai draft terlebih dahulu.','Ya, Batalkan','btn-danger',()=>{ forceCloseLapor(); });
+  } else { forceCloseLapor(); }
+}
+
+function previewFoto(input){
+  if(!input.files||!input.files[0]) return;
+  const file=input.files[0];
+  if(file.size>5*1024*1024){ showToast('error','⚠️','Ukuran foto melebihi 5MB.'); input.value=''; return; }
+  const reader=new FileReader();
+  reader.onload=e=>{ laporFotoDataURL=e.target.result; showFotoPreview(e.target.result,file.name); };
+  reader.readAsDataURL(file);
+}
+function showFotoPreview(dataUrl,name){
+  document.getElementById('uploadPlaceholder').style.display='none';
+  const prev=document.getElementById('uploadPreview');
+  prev.style.display='block';
+  document.getElementById('uploadPreviewImg').src=dataUrl;
+  document.getElementById('uploadFileName').textContent=name||'foto';
+}
+function clearFoto(e){ if(e) e.stopPropagation(); clearFotoInternal(); }
+function clearFotoInternal(){
+  laporFotoDataURL=null;
+  const inp=document.getElementById('laporFoto');
+  if(inp) inp.value='';
+  document.getElementById('uploadPlaceholder').style.display='block';
+  document.getElementById('uploadPreview').style.display='none';
+  document.getElementById('uploadPreviewImg').src='';
+}
+
+function saveDraft(){
+  const pc=document.getElementById('laporPc').value.trim();
+  draftData={ pc, lab:document.getElementById('laporLab').value, kategori:document.getElementById('laporKat').value, deskripsi:document.getElementById('laporDesc').value, foto:laporFotoDataURL };
+  closeLapor();
+  showToast('warning','📋','Draft tersimpan. Kamu bisa melanjutkan nanti.');
+}
+
+function submitLapor(){
+  const pc=document.getElementById('laporPc').value.trim();
+  const desc=document.getElementById('laporDesc').value.trim();
+  const errEl=document.getElementById('laporErr');
+  if(!pc||!desc){ errEl.style.display='block'; return; }
+  errEl.style.display='none';
+  const lab=document.getElementById('laporLab').value;
+  const kat=document.getElementById('laporKat').value;
+  const katBadge=kat==='Hardware'?'b-hw':kat==='Software'?'b-sw':kat==='Jaringan'?'b-net':'b-hw';
+  laporIdCounter++;
+  const newId=`#LPR-2024-0${laporIdCounter}`;
+  const now=new Date();
+  const tgl=`${now.getDate()} Mei 2026 · ${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+  const entry={ id:newId, pc, pelapor:currentUser.nama, kategori:kat, kat_badge:katBadge, deskripsi:desc, status:'baru', waktu:tgl, foto:laporFotoDataURL||null };
+  laporanData.unshift(entry);
+  fbSaveLaporan();
+  draftData=null;
+  closeLapor();
+  clearFotoInternal();
+  showToast('success','✅','Laporan berhasil dikirim! Admin akan segera meninjau.');
+  // navigate to laporan page
+  const laporBtn=document.querySelectorAll('#sidebarEl .sb-item')[2];
+  asNav('laporan', laporBtn);
+  updateAsDashboard();
+}
+
+// ── ASISTEN PAGES HTML ──
+function asistenPagesHTML(){
+  const pc=getPcCounts();
+  const lc=getAsLaporCounts();
+  return `
+<!-- DASHBOARD -->
+<div class="page active" id="as-page-dashboard">
+  <nav class="breadcrumb"><span>Beranda</span></nav>
+  <div class="page-header"><div><div class="page-title">Ringkasan Lab A</div><div class="page-sub">Lab A — Lantai 2</div></div></div>
+  <div class="stat-row stat-row-4">
+    <div class="stat-card green"><div class="stat-icon">✅</div><div class="stat-num green" id="as-dash-normal">${pc.normal}</div><div class="stat-lbl">PC Normal</div></div>
+    <div class="stat-card yellow"><div class="stat-icon">🔍</div><div class="stat-num yellow" id="as-dash-perlu">${pc.perlu}</div><div class="stat-lbl">Perlu Cek</div></div>
+    <div class="stat-card red"><div class="stat-icon">⚠️</div><div class="stat-num red" id="as-dash-rusak">${pc.rusak}</div><div class="stat-lbl">Rusak / Offline</div></div>
+    <div class="stat-card blue"><div class="stat-icon">🖥️</div><div class="stat-num blue" id="as-dash-total">${pc.total}</div><div class="stat-lbl">Total Perangkat</div></div>
+  </div>
+  <div class="grid-3-1">
+    <div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Status Perangkat</span><button class="btn btn-ghost btn-sm" onclick="asNav('status-pc',document.querySelectorAll('#sidebarEl .sb-item')[1])">Lihat Semua →</button></div>
+        <div class="card-body"><table class="tbl"><thead><tr><th>Nama PC</th><th>Status</th><th>Cek</th><th>Aksi</th></tr></thead>
+        <tbody id="as-dash-status-tbody"></tbody></table></div>
+      </div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Laporan Aktif</span><button class="btn btn-ghost btn-sm" onclick="asNav('laporan',document.querySelectorAll('#sidebarEl .sb-item')[2])">Lihat Semua →</button></div>
+        <div class="card-body"><table class="tbl"><thead><tr><th>PC</th><th>Masalah</th><th>Status</th></tr></thead>
+        <tbody id="as-dash-laporan-tbody"></tbody></table></div>
+      </div>
+    </div>
+    <div>
+      <div class="card">
+        <div class="card-header"><span class="card-title">Aktivitas Terbaru</span></div>
+        <div class="activity-list" id="as-dash-aktivitas-list"></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- STATUS PC -->
+<div class="page" id="as-page-status-pc">
+  <nav class="breadcrumb"><a onclick="asNav('dashboard',document.querySelectorAll('#sidebarEl .sb-item')[0])">Dashboard</a><span class="breadcrumb-sep">›</span><span>Status PC</span></nav>
+  <div class="page-header"><div><div class="page-title">Status PC</div><div class="page-sub" id="pcPageSub">${pcData.length} perangkat terdaftar</div></div><button class="btn btn-primary btn-sm" onclick="openLapor()">+ Lapor Kerusakan</button></div>
+  <div class="filter-bar">
+    <button class="filter-tab active" onclick="filterPC(this,'all')">Semua <span class="count-pill">${pcData.length}</span></button>
+    <button class="filter-tab" onclick="filterPC(this,'normal')">Normal <span class="count-pill">${pc.normal}</span></button>
+    <button class="filter-tab" onclick="filterPC(this,'perlu')">Perlu Cek <span class="count-pill">${pc.perlu}</span></button>
+    <button class="filter-tab" onclick="filterPC(this,'rusak')">Rusak <span class="count-pill">${pc.rusak}</span></button>
+    <input class="search-input" id="pcSearch" type="text" placeholder="🔍 Cari nama PC...">
+  </div>
+  <div class="card"><div class="card-header"><span class="card-title">Grid Perangkat</span><span style="font-size:11px;color:var(--txt2);">Klik tile untuk detail</span></div><div class="pc-grid" id="pcGrid"></div></div>
+  <div class="card"><div class="card-header"><span class="card-title">Tabel Perangkat</span></div><div class="card-body"><table class="tbl"><thead><tr><th>Nama PC</th><th>Lokasi</th><th>Status</th><th>IP</th><th>Cek</th><th>Aksi</th></tr></thead><tbody id="pcTableBody"></tbody></table></div></div>
+</div>
+
+<!-- LAPORAN RUSAK -->
+<div class="page" id="as-page-laporan">
+  <nav class="breadcrumb"><a onclick="asNav('dashboard',document.querySelectorAll('#sidebarEl .sb-item')[0])">Dashboard</a><span class="breadcrumb-sep">›</span><span>Laporan Rusak</span></nav>
+  <div class="page-header"><div><div class="page-title">Laporan Rusak</div><div class="page-sub">Laporan yang kamu buat</div></div></div>
+  <div class="stat-row" style="grid-template-columns:repeat(2,1fr);">
+    <div class="stat-card red"><div class="stat-icon">🆕</div><div class="stat-num red" id="as-laporan-card-baru">${lc.baru}</div><div class="stat-lbl">Baru</div></div>
+    <div class="stat-card yellow"><div class="stat-icon">🔧</div><div class="stat-num yellow" id="as-laporan-card-diproses">${lc.diproses}</div><div class="stat-lbl">Diproses</div></div>
+  </div>
+  <div class="filter-bar">
+    <button class="filter-tab active" onclick="filterAsLaporan(this,'semua')">Semua</button>
+    <button class="filter-tab" onclick="filterAsLaporan(this,'baru')">Baru</button>
+    <button class="filter-tab" onclick="filterAsLaporan(this,'diproses')">Diproses</button>
+    <button class="filter-tab" onclick="filterAsLaporan(this,'selesai')">Selesai</button>
+    <input class="search-input" id="asLaporSearch" type="text" placeholder="🔍 Cari laporan..." oninput="filterAsLaporan(null,null,this.value)">
+  </div>
+  <div class="card"><div class="card-body"><table class="tbl"><thead><tr><th>No. Laporan</th><th>PC</th><th>Kategori</th><th>Deskripsi</th><th>Status</th><th>Tanggal</th></tr></thead>
+  <tbody id="asLaporTableBody"></tbody></table></div></div>
+</div>
+
+<!-- RIWAYAT -->
+<div class="page" id="as-page-riwayat">
+  <nav class="breadcrumb"><a onclick="asNav('dashboard',document.querySelectorAll('#sidebarEl .sb-item')[0])">Dashboard</a><span class="breadcrumb-sep">›</span><span>Riwayat Laporan</span></nav>
+  <div class="page-header"><div><div class="page-title">Riwayat Laporan</div><div class="page-sub">Semua laporan di Lab</div></div></div>
+  <div class="filter-bar">
+    <input class="search-input" type="text" placeholder="🔍 Cari..." oninput="filterRiwayat(this.value)" style="margin-left:0;">
+  </div>
+  <div class="card"><div class="card-body"><table class="tbl"><thead><tr><th>No. Laporan</th><th>PC</th><th>Kategori</th><th>Masalah</th><th>Pelapor</th><th>Status</th><th>Tanggal Lapor</th><th>Tanggal Selesai</th></tr></thead>
+  <tbody id="riwayatTableBody"></tbody></table></div></div>
+</div>`;
+}
+
+function filterRiwayat(search){
+  const s=search.toLowerCase();
+  const tb=document.getElementById('riwayatTableBody');
+  if(!tb) return;
+  let data=laporanData;
+  if(s) data=data.filter(l=>(l.id+l.pc+l.kategori+l.deskripsi+l.pelapor).toLowerCase().includes(s));
+  tb.innerHTML=data.map(l=>`
+    <tr>
+      <td style="font-size:11px;font-weight:600;color:var(--blue);">${l.id}</td>
+      <td><span class="tbl-name">${l.pc}</span></td>
+      <td><span class="badge ${l.kat_badge}" style="font-size:9px;">${l.kategori}</span></td>
+      <td style="font-size:11px;color:var(--txt2);">${l.deskripsi.substring(0,40)}${l.deskripsi.length>40?'...':''}</td>
+      <td style="font-size:11px;">${l.pelapor}</td>
+      <td><span class="badge ${statusClass[l.status]}">${statusLabel[l.status]}</span></td>
+      <td style="font-size:11px;color:var(--txt2);">${l.waktu.split('·')[0].trim()}</td>
+      <td style="font-size:11px;color:var(--txt2);">${l.status==='selesai'?l.waktu.split('·')[0].trim():'—'}</td>
+    </tr>`).join('');
+}
+
+
+// ═══════════════════════════════════════════════════════
+// ════ KELOLA PENGGUNA ════
+// ═══════════════════════════════════════════════════════
+function renderPengguna(){
+  const tb=document.getElementById('penggunaTableBody');
+  if(!tb) return;
+  const users=Object.entries(USERS).filter(([id,u])=>u.role!=='admin');
+  if(users.length===0){
+    tb.innerHTML='<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--txt3);">Belum ada akun asisten. Klik "+ Tambah Pengguna" untuk menambahkan.</td></tr>';
+    return;
+  }
+  tb.innerHTML=users.map(([id,u])=>`
+    <tr>
+      <td style="font-family:monospace;font-size:12px;font-weight:600;color:var(--blue);">${id}</td>
+      <td><span class="tbl-name">${u.nama}</span></td>
+      <td><span class="badge b-sw">Asisten</span></td>
+      <td style="font-size:11px;color:var(--txt2);">${(u.labs||[]).length>0?u.labs.join(', '):'<span style="color:var(--txt3)">Belum ditugaskan</span>'}</td>
+      <td style="display:flex;gap:4px;" onclick="event.stopPropagation()">
+        <button class="btn btn-warn btn-sm" style="font-size:10px;" onclick="openEditUserModal('${id}')">Edit</button>
+        <button class="btn btn-danger btn-sm" style="font-size:10px;" onclick="konfirmasiHapusUser('${id}')">Hapus</button>
+      </td>
+    </tr>`).join('');
+}
+
+function openAddUserModal(){
+  document.getElementById('userModalTitle').textContent='Tambah Pengguna Baru';
+  document.getElementById('userModalOrigId').value='';
+  document.getElementById('userModalId').value='';
+  document.getElementById('userModalId').disabled=false;
+  document.getElementById('userModalNama').value='';
+  document.getElementById('userModalPw').value='';
+  document.getElementById('userModalInisial').value='';
+  document.getElementById('userModalErr').style.display='none';
+  buildUserLabCheckboxes([]);
+  document.getElementById('userModal').classList.add('open');
+}
+
+function openEditUserModal(id){
+  const u=USERS[id];
+  if(!u) return;
+  document.getElementById('userModalTitle').textContent='Edit Pengguna — '+id;
+  document.getElementById('userModalOrigId').value=id;
+  document.getElementById('userModalId').value=id;
+  document.getElementById('userModalId').disabled=true;
+  document.getElementById('userModalNama').value=u.nama;
+  document.getElementById('userModalPw').value=u.pw;
+  document.getElementById('userModalInisial').value=u.inisial||'';
+  document.getElementById('userModalErr').style.display='none';
+  buildUserLabCheckboxes(u.labs||[]);
+  document.getElementById('userModal').classList.add('open');
+}
+
+function buildUserLabCheckboxes(selectedLabs){
+  const el=document.getElementById('userModalLabList');
+  el.innerHTML=labsData.map(l=>{
+    const checked=selectedLabs.includes(l.nama);
+    const border=checked?'var(--blue)':'var(--border)';
+    return '<label style="display:flex;align-items:center;gap:6px;background:var(--bg-input);border:1.5px solid '+border+';border-radius:var(--r-sm);padding:7px 14px;cursor:pointer;font-size:12px;transition:.15s;" onclick="event.preventDefault();const cb=this.querySelector('input');cb.checked=!cb.checked;this.style.borderColor=cb.checked?'var(--blue)':'var(--border)'">'
+      +'<input type="checkbox" '+(checked?'checked':'')+'style="accent-color:var(--blue);">'
+      +'<span>'+l.nama+'</span><span style="color:var(--txt3);font-size:10px;margin-left:2px;">('+l.lantai+')</span>'
+      +'</label>';
+  }).join('');
+}
+
+function getCheckedLabs(){
+  const labels=document.querySelectorAll('#userModalLabList label');
+  const result=[];
+  labels.forEach((lbl,i)=>{
+    const cb=lbl.querySelector('input[type=checkbox]');
+    if(cb&&cb.checked&&labsData[i]) result.push(labsData[i].nama);
+  });
+  return result;
+}
+
+function closeUserModal(){ document.getElementById('userModal').classList.remove('open'); }
+
+function submitUserModal(){
+  const origId=document.getElementById('userModalOrigId').value;
+  const id=document.getElementById('userModalId').value.trim();
+  const nama=document.getElementById('userModalNama').value.trim();
+  const pw=document.getElementById('userModalPw').value.trim();
+  const inisial=document.getElementById('userModalInisial').value.trim().toUpperCase()||nama.substring(0,2).toUpperCase();
+  const errEl=document.getElementById('userModalErr');
+  if(!id||!nama||!pw){ errEl.textContent='ID, Nama, dan Password wajib diisi!'; errEl.style.display='block'; return; }
+  if(pw.length<6){ errEl.textContent='Password minimal 6 karakter!'; errEl.style.display='block'; return; }
+  if(!origId&&USERS[id]){ errEl.textContent='ID "'+id+'" sudah digunakan! Gunakan ID lain.'; errEl.style.display='block'; return; }
+  const labs=getCheckedLabs();
+  const labLabel=labs.length>0?labs.join(', '):'Belum ditugaskan';
+  if(origId&&origId!==id) delete USERS[origId];
+  USERS[id]={pw,role:'asisten',nama,inisial,labs,labLabel};
+  fbSaveUsers();
+  closeUserModal();
+  renderPengguna();
+  showToast('success','👤','Pengguna '+nama+' berhasil '+(origId?'diperbarui':'ditambahkan')+'!');
+}
+
+function konfirmasiHapusUser(id){
+  const u=USERS[id];
+  showConfirm('Hapus pengguna '+(u?u.nama:id)+'?','Akun ini akan dihapus dan tidak bisa login lagi.','Hapus','btn-danger',()=>{
+    delete USERS[id];
+    fbSaveUsers();
+    renderPengguna();
+    showToast('success','🗑️','Pengguna '+id+' berhasil dihapus.');
+  });
+}
+
+// ═══════════════════════════════════════════════════════
+// ════ KELOLA LAB ════
+// ═══════════════════════════════════════════════════════
+function renderLab(){
+  const tb=document.getElementById('labTableBody');
+  if(!tb) return;
+  if(labsData.length===0){
+    tb.innerHTML='<tr><td colspan="5" style="text-align:center;padding:32px;color:var(--txt3);">Belum ada lab terdaftar.</td></tr>';
+    return;
+  }
+  tb.innerHTML=labsData.map(l=>`
+    <tr>
+      <td style="font-family:monospace;font-size:11px;color:var(--txt3);">${l.id}</td>
+      <td><span class="tbl-name">${l.nama}</span></td>
+      <td style="font-size:11px;color:var(--txt2);">${l.lantai}</td>
+      <td style="font-size:11px;color:var(--txt2);">${asetData.filter(a=>a.lab===l.nama).length} unit</td>
+      <td style="display:flex;gap:4px;" onclick="event.stopPropagation()">
+        <button class="btn btn-warn btn-sm" style="font-size:10px;" onclick="openEditLabModal('${l.id}')">Edit</button>
+        <button class="btn btn-danger btn-sm" style="font-size:10px;" onclick="konfirmasiHapusLab('${l.id}')">Hapus</button>
+      </td>
+    </tr>`).join('');
+}
+
+function openAddLabModal(){
+  document.getElementById('labModalTitle').textContent='Tambah Lab Baru';
+  document.getElementById('labModalOrigId').value='';
+  document.getElementById('labModalNama').value='';
+  document.getElementById('labModalLantai').value='';
+  document.getElementById('labModalErr').style.display='none';
+  document.getElementById('labModal').classList.add('open');
+}
+
+function openEditLabModal(id){
+  const l=labsData.find(x=>x.id===id);
+  if(!l) return;
+  document.getElementById('labModalTitle').textContent='Edit Lab — '+l.nama;
+  document.getElementById('labModalOrigId').value=id;
+  document.getElementById('labModalNama').value=l.nama;
+  document.getElementById('labModalLantai').value=l.lantai;
+  document.getElementById('labModalErr').style.display='none';
+  document.getElementById('labModal').classList.add('open');
+}
+
+function closeLabModal(){ document.getElementById('labModal').classList.remove('open'); }
+
+function submitLabModal(){
+  const origId=document.getElementById('labModalOrigId').value;
+  const nama=document.getElementById('labModalNama').value.trim();
+  const lantai=document.getElementById('labModalLantai').value.trim();
+  const errEl=document.getElementById('labModalErr');
+  if(!nama||!lantai){ errEl.textContent='Nama lab dan lantai wajib diisi!'; errEl.style.display='block'; return; }
+  if(origId){
+    const idx=labsData.findIndex(l=>l.id===origId);
+    if(idx>-1){
+      const oldNama=labsData[idx].nama;
+      const oldLantai=labsData[idx].lantai;
+      labsData[idx]={...labsData[idx],nama,lantai};
+      if(oldNama!==nama||oldLantai!==lantai){
+        asetData.forEach(a=>{ if(a.lab===oldNama){ a.lab=nama; a.row=lantai; } });
+        syncAsetToPcData();
+        fbSaveAset(); fbSavePcData();
+      }
+    }
+  } else {
+    const newId='lab-'+nama.toLowerCase().replace(/[^a-z0-9]+/g,'-');
+    if(labsData.find(l=>l.id===newId||l.nama===nama)){
+      errEl.textContent='Nama lab sudah ada!'; errEl.style.display='block'; return;
+    }
+    labsData.push({id:newId,nama,lantai});
+  }
+  fbSaveLabs();
+  closeLabModal();
+  renderLab();
+  refreshLabDropdowns();
+  showToast('success','🏫','Lab '+nama+' berhasil '+(origId?'diperbarui':'ditambahkan')+'!');
+}
+
+function konfirmasiHapusLab(id){
+  const l=labsData.find(x=>x.id===id);
+  const jumlah=asetData.filter(a=>a.lab===(l?l.nama:'')).length;
+  const desc=jumlah>0?'Lab ini memiliki '+jumlah+' aset. Aset tidak ikut terhapus.':'Lab ini belum memiliki aset terdaftar.';
+  showConfirm('Hapus '+(l?l.nama:id)+'?',desc,'Hapus','btn-danger',()=>{
+    labsData=labsData.filter(x=>x.id!==id);
+    fbSaveLabs();
+    renderLab();
+    refreshLabDropdowns();
+    showToast('success','🗑️','Lab berhasil dihapus.');
+  });
+}
+
+function refreshLabDropdowns(){
+  const labOpts=labsData.map(l=>'<option value="'+l.nama+'">'+l.nama+' — '+l.lantai+'</option>').join('');
+  const newSel=document.getElementById('newPcLab');
+  if(newSel){ const prev=newSel.value; newSel.innerHTML=labOpts; if(labsData.find(l=>l.nama===prev)) newSel.value=prev; }
+  const editSel=document.getElementById('editPcLab');
+  if(editSel){ const prev=editSel.value; editSel.innerHTML=labOpts; if(labsData.find(l=>l.nama===prev)) editSel.value=prev; }
+  const laporSel=document.getElementById('laporLab');
+  if(laporSel){ const prev=laporSel.value; laporSel.innerHTML=labOpts; if(labsData.find(l=>l.nama===prev)) laporSel.value=prev; }
+  // Rebuild filter tabs
+  const bar=document.getElementById('asetFilterBar');
+  if(bar){
+    const ac=getAsetCounts();
+    bar.innerHTML='<button class="filter-tab active" onclick="filterAset(this,'semua')">Semua <span class="count-pill">'+ac.total+'</span></button>'
+      +labsData.map(l=>'<button class="filter-tab" onclick="filterAset(this,''+l.id+'')">'+l.nama+' <span class="count-pill">'+asetData.filter(a=>a.lab===l.nama).length+'</span></button>').join('')
+      +'<input class="search-input" id="asetSearch" type="text" placeholder="🔍 Cari nama aset..." oninput="renderAset(currentAsetFilter,this.value)">';
+  }
+}
+
+// ═══════════════════════════════════════
+// REAL-TIME LISTENERS (sinkron antar perangkat)
+// ═══════════════════════════════════════
+function startRealtimeListeners(){
+  // Listen users changes
+  db.ref('users').on('value', snap=>{
+    const val=snap.val();
+    if(val&&typeof val==='object') USERS=val;
+    if(currentUser&&currentUser.role==='admin') { const tb=document.getElementById('penggunaTableBody'); if(tb) renderPengguna(); }
+  });
+  // Listen labsData changes
+  db.ref('labsData').on('value', snap=>{
+    const val=snap.val();
+    if(val&&Array.isArray(val)&&val.length>0){ labsData.length=0; val.forEach(l=>labsData.push(l)); }
+    if(currentUser&&currentUser.role==='admin') { const tb=document.getElementById('labTableBody'); if(tb) renderLab(); }
+    refreshLabDropdowns();
+  });
+  // Listen asetData changes
+  db.ref('asetData').on('value', snap=>{
+    const val=snap.val();
+    if(val&&Array.isArray(val)){
+      asetData.length=0; val.forEach(a=>asetData.push(a));
+      // Re-render jika halaman aset sedang terbuka
+      if(currentUser&&currentUser.role==='admin'){
+        renderAset(); updateAsetCards(); updateAdminOverview();
+      }
+    }
+  });
+  // Listen laporanData changes
+  db.ref('laporanData').on('value', snap=>{
+    const val=snap.val();
+    if(val&&Array.isArray(val)){
+      laporanData.length=0; val.forEach(l=>laporanData.push(l));
+      if(currentUser&&currentUser.role==='admin'){
+        renderInbox(currentInboxFilter); updateAdminOverview(); updateInboxCounts();
+      }
+      if(currentUser&&currentUser.role==='asisten'){
+        renderAsLaporan(); updateAsDashboard(); updateAsSidebarBadge();
+      }
+    }
+  });
+  // Listen pcData changes
+  db.ref('pcData').on('value', snap=>{
+    const val=snap.val();
+    if(val&&Array.isArray(val)){
+      pcData.length=0; val.forEach(p=>pcData.push(p));
+      if(currentUser&&currentUser.role==='asisten'){
+        renderPCGrid(); renderPCTable(); updateAsDashboard();
+      }
+    }
+  });
+}
+
+// ── Start app ──
+window.addEventListener('load', ()=>{
+  fbLoadAndStart();
+});
+</script>
+</body>
+</html>
